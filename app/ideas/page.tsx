@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import IdeaCard from '@/components/IdeaCard';
@@ -8,7 +8,7 @@ import Loading from '@/components/Loading';
 import { Idea } from '@/types';
 import { FaBrain, FaSearch } from 'react-icons/fa';
 
-export default function IdeasPage() {
+function IdeasContent() {
   const searchParams = useSearchParams();
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
@@ -295,5 +295,13 @@ export default function IdeasPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function IdeasPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <IdeasContent />
+    </Suspense>
   );
 }

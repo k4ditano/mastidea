@@ -1,12 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
-interface RouteParams {
-  params: {
-    id: string;
-    tagId: string;
-  };
-}
+import { auth } from '@clerk/nextjs/server';
 
 /**
  * DELETE /api/ideas/[id]/tags/[tagId]
@@ -14,10 +8,27 @@ interface RouteParams {
  */
 export async function DELETE(
   request: Request,
-  { params }: RouteParams
+  { params }: { params: Promise<{ id: string; tagId: string }> }
 ) {
   try {
-    const { id, tagId } = params;
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
+    const { id, tagId } = await params;
+
+    // Verificar que la idea pertenece al usuario
+    const idea = await prisma.idea.findFirst({
+      where: { id, userId }
+    });
+
+    if (!idea) {
+      return NextResponse.json(
+        { error: 'Idea no encontrada' },
+        { status: 404 }
+      );
+    }
 
     // Verificar que la relación existe
     const existing = await prisma.ideaTag.findUnique({

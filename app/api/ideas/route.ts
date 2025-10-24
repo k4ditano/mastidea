@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { openRouterClient } from '@/lib/openrouter';
 import { qdrantService } from '@/lib/qdrant';
@@ -32,6 +33,15 @@ function getRandomColor(): string {
  */
 export async function POST(request: NextRequest) {
   try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      );
+    }
+    
     const body = await request.json();
     let { title } = createIdeaSchema.parse(body);
     const { content } = createIdeaSchema.parse(body);
@@ -53,6 +63,7 @@ export async function POST(request: NextRequest) {
     // Crear la idea en la base de datos
     const idea = await prisma.idea.create({
       data: {
+        userId,
         title,
         content,
       },
@@ -162,19 +173,29 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/ideas - Obtiene todas las ideas
+ * GET /api/ideas - Obtiene todas las ideas del usuario
  */
 export async function GET(request: NextRequest) {
   try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      );
+    }
+    
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
     const ideas = await prisma.idea.findMany({
-      where: status ? {
-        status: status as 'ACTIVE' | 'ARCHIVED' | 'COMPLETED',
-      } : undefined, // Si no hay status, traer todas
+      where: {
+        userId,
+        ...(status ? { status: status as 'ACTIVE' | 'ARCHIVED' | 'COMPLETED' } : {}),
+      },
       include: {
         expansions: {
           orderBy: { createdAt: 'asc' },
@@ -191,9 +212,10 @@ export async function GET(request: NextRequest) {
     });
 
     const total = await prisma.idea.count({
-      where: status ? {
-        status: status as 'ACTIVE' | 'ARCHIVED' | 'COMPLETED',
-      } : undefined,
+      where: {
+        userId,
+        ...(status ? { status: status as 'ACTIVE' | 'ARCHIVED' | 'COMPLETED' } : {}),
+      },
     });
 
     return NextResponse.json({

@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { UserButton, useUser } from '@clerk/nextjs';
 import { FaBrain, FaLightbulb, FaProjectDiagram, FaTags } from 'react-icons/fa';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { isSignedIn } = useUser();
 
   const navItems = [
     { href: '/', label: 'Inicio', icon: FaLightbulb },
@@ -53,6 +55,20 @@ export default function Navbar() {
                 </Link>
               );
             })}
+            
+            {/* User Button */}
+            <div className="ml-4 flex items-center">
+              {isSignedIn ? (
+                <UserButton afterSignOutUrl="/" />
+              ) : (
+                <Link
+                  href="/sign-in"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                >
+                  Iniciar sesión
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>

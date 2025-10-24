@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { openRouterClient } from '@/lib/openrouter';
+import { auth } from '@clerk/nextjs/server';
 
 // Colores predefinidos para tags
 const TAG_COLORS = [
@@ -28,11 +29,16 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
     const { id } = await params;
 
-    // Obtener la idea con todas sus expansiones y tags actuales
-    const idea = await prisma.idea.findUnique({
-      where: { id },
+    // Obtener la idea con todas sus expansiones y tags actuales (verificando que pertenezca al usuario)
+    const idea = await prisma.idea.findFirst({
+      where: { id, userId },
       include: {
         expansions: {
           orderBy: { createdAt: 'asc' },

@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
+import { auth } from '@clerk/nextjs/server';
 
 /**
  * POST /api/ideas/[id]/tags
@@ -13,11 +8,16 @@ interface RouteParams {
  */
 export async function POST(
   request: Request,
-  { params }: RouteParams
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
     const { tagId } = await request.json();
-    const { id } = params;
+    const { id } = await params;
 
     if (!tagId) {
       return NextResponse.json(
@@ -26,9 +26,9 @@ export async function POST(
       );
     }
 
-    // Verificar que la idea existe
-    const idea = await prisma.idea.findUnique({
-      where: { id }
+    // Verificar que la idea existe y pertenece al usuario
+    const idea = await prisma.idea.findFirst({
+      where: { id, userId }
     });
 
     if (!idea) {

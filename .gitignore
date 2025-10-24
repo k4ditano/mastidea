@@ -49,3 +49,6 @@ next-env.d.ts
 **/public/worker-*.js.map
 
 /app/generated/prisma
+
+# clerk configuration (can include secrets)
+/.clerk/

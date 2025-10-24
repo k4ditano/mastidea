@@ -15,6 +15,7 @@ datasource db {
 
 model Idea {
   id          String       @id @default(cuid())
+  userId      String       // Clerk user ID
   title       String
   content     String       @db.Text
   status      IdeaStatus   @default(ACTIVE)
@@ -26,6 +27,7 @@ model Idea {
   
   @@index([createdAt])
   @@index([status])
+  @@index([userId])
 }
 
 model Tag {

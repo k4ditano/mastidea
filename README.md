@@ -44,7 +44,14 @@ Una aplicación minimalista inspirada en Einstein que te ayuda a expandir tus id
 - **Funciona offline** (próximo: sincronización)
 - **Prompt de instalación** inteligente
 
-### 🔍 Búsqueda (Parcial)
+### � Autenticación Multi-Usuario (V2.0)
+- **Sistema completo de usuarios** con Clerk
+- **Autenticación segura** (email, Google, GitHub, etc.)
+- **Aislamiento de datos** por usuario
+- **Gestión de sesiones** automática
+- **Plan gratuito**: 10,000 usuarios activos/mes
+
+### �🔍 Búsqueda (Parcial)
 - Base vectorial **Qdrant** configurada
 - Búsqueda semántica (embeddings deshabilitados temporalmente)
 - Búsqueda por texto en interfaz
@@ -84,6 +91,7 @@ MastIdea
 - Node.js 18+ y npm
 - Docker y Docker Compose
 - Cuenta en:
+  - [Clerk](https://clerk.com/) (autenticación - plan gratuito disponible)
   - [OpenRouter](https://openrouter.ai/) (para IA conversacional Y embeddings)
 
 ### Instalación
@@ -104,13 +112,20 @@ npm install
 cp .env.example .env
 ```
 
-Edita `.env` y agrega tu API key:
+Edita `.env` y agrega tus API keys:
 ```env
-# OpenRouter (GRATIS con Llama 3.1 + embeddings económicos!)
-OPENROUTER_API_KEY="sk-or-v1-tu-key-aqui"
-OPENROUTER_MODEL="meta-llama/llama-3.1-8b-instruct:free"
+# Clerk Authentication (REQUERIDO para V2.0)
+# 1. Ve a https://dashboard.clerk.com
+# 2. Crea una aplicación gratuita
+# 3. Copia las keys desde el dashboard
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
+CLERK_SECRET_KEY="sk_test_..."
 
-# ¡Solo necesitas UNA API key! Los embeddings también usan OpenRouter
+# OpenRouter (GRATIS con modelos free!)
+OPENROUTER_API_KEY="sk-or-v1-tu-key-aqui"
+OPENROUTER_MODEL="alibaba/tongyi-deepresearch-30b-a3b:free"
+
+# ¡Solo necesitas DOS servicios! Clerk (auth) + OpenRouter (IA)
 ```
 
 4. **Inicia los contenedores de Docker**

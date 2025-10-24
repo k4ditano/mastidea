@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { qdrantService } from '@/lib/qdrant';
+import { auth } from '@clerk/nextjs/server';
 
 /**
  * GET /api/ideas/[id] - Obtiene una idea por ID
@@ -10,9 +11,14 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
     const { id } = await params;
-    const idea = await prisma.idea.findUnique({
-      where: { id },
+    const idea = await prisma.idea.findFirst({
+      where: { id, userId },
       include: {
         expansions: {
           orderBy: { createdAt: 'asc' },
@@ -72,7 +78,25 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
     const { id } = await params;
+    
+    // Verificar que la idea pertenece al usuario
+    const idea = await prisma.idea.findFirst({
+      where: { id, userId },
+    });
+
+    if (!idea) {
+      return NextResponse.json(
+        { error: 'Idea no encontrada' },
+        { status: 404 }
+      );
+    }
+
     await prisma.idea.delete({
       where: { id },
     });
@@ -102,9 +126,26 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
     const { id } = await params;
     const body = await request.json();
     const { status } = body;
+
+    // Verificar que la idea pertenece al usuario
+    const existingIdea = await prisma.idea.findFirst({
+      where: { id, userId },
+    });
+
+    if (!existingIdea) {
+      return NextResponse.json(
+        { error: 'Idea no encontrada' },
+        { status: 404 }
+      );
+    }
 
     const idea = await prisma.idea.update({
       where: { id },
