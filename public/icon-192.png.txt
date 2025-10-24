@@ -1,0 +1,3 @@
+# Placeholder para icon-192.png
+# Por ahora, copia cualquier imagen 192x192 como icon-192.png
+# Puedes usar https://realfavicongenerator.net/ para generar íconos

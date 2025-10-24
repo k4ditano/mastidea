@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Idea {
+  id          String       @id @default(cuid())
+  title       String
+  content     String       @db.Text
+  status      IdeaStatus   @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  expansions  Expansion[]
+  tags        IdeaTag[]
+  
+  @@index([createdAt])
+  @@index([status])
+}
+
+model Tag {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  color       String       @default("#7257ff") // Color por defecto (einstein-500)
+  createdAt   DateTime     @default(now())
+  
+  ideas       IdeaTag[]
+  
+  @@index([name])
+}
+
+model IdeaTag {
+  ideaId      String
+  tagId       String
+  createdAt   DateTime     @default(now())
+  
+  idea        Idea         @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  tag         Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@id([ideaId, tagId])
+  @@index([ideaId])
+  @@index([tagId])
+}
+
+model Expansion {
+  id          String         @id @default(cuid())
+  ideaId      String
+  content     String         @db.Text
+  userMessage String?        @db.Text  // Mensaje del usuario (si es una conversación)
+  type        ExpansionType
+  aiModel     String         @default("meta-llama/llama-3.1-8b-instruct")
+  createdAt   DateTime       @default(now())
+  
+  idea        Idea           @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  @@index([ideaId])
+  @@index([createdAt])
+}
+
+enum IdeaStatus {
+  ACTIVE
+  ARCHIVED
+  COMPLETED
+}
+
+enum ExpansionType {
+  SUGGESTION      // Sugerencias de mejora
+  QUESTION        // Preguntas provocadoras
+  CONNECTION      // Conexiones con otros conceptos
+  USE_CASE        // Casos de uso prácticos
+  CHALLENGE       // Problemas potenciales
+  AUTO_EXPANSION  // Primera expansión automática
+  SUMMARY         // Resumen ejecutivo al completar
+}

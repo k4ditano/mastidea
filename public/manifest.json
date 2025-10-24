@@ -1,0 +1,12 @@
+{
+  "name": "MastIdea - Explora tus ideas con IA",
+  "short_name": "MastIdea",
+  "description": "Captura, expande y desarrolla tus ideas con la ayuda de inteligencia artificial",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "creativity"],
+  "screenshots": []
+}

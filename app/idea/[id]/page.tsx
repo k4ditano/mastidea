@@ -1,0 +1,403 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Loading from '@/components/Loading';
+import VoiceRecorder from '@/components/VoiceRecorder';
+import ExportButtons from '@/components/ExportButtons';
+import TagEditor from '@/components/TagEditor';
+import { Idea, ExpansionType, EXPANSION_TYPE_LABELS } from '@/types';
+import { FaArrowLeft, FaTrash, FaCheckCircle } from 'react-icons/fa';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
+
+export default function IdeaPage() {
+  const params = useParams();
+  const router = useRouter();
+  const [idea, setIdea] = useState<Idea | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [expanding, setExpanding] = useState(false);
+  const [replyingToExpansion, setReplyingToExpansion] = useState<string | null>(null);
+  const [customMessage, setCustomMessage] = useState('');
+  const [completing, setCompleting] = useState(false);
+
+  const handleTranscript = (text: string) => {
+    setCustomMessage((prev) => prev + (prev ? ' ' : '') + text);
+  };
+
+  useEffect(() => {
+    if (params.id) {
+      loadIdea();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.id]);
+
+  const loadIdea = async () => {
+    try {
+      const response = await fetch(`/api/ideas/${params.id}`);
+      if (!response.ok) {
+        throw new Error('Idea not found');
+      }
+      const data = await response.json();
+      setIdea(data);
+    } catch (error) {
+      console.error('Error loading idea:', error);
+      alert('Error al cargar la idea');
+      router.push('/');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExpand = async (type: ExpansionType) => {
+    setExpanding(true);
+    try {
+      const response = await fetch(`/api/ideas/${params.id}/expand`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error expanding idea');
+      }
+
+      await loadIdea();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al expandir la idea. Por favor intenta de nuevo.');
+    } finally {
+      setExpanding(false);
+    }
+  };
+
+  const handleReplyToExpansion = async (expansionId: string, message: string) => {
+    setReplyingToExpansion(expansionId || 'custom');
+    try {
+      const response = await fetch(`/api/ideas/${params.id}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error responding to expansion');
+      }
+
+      await loadIdea();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al responder. Por favor intenta de nuevo.');
+    } finally {
+      setReplyingToExpansion(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta idea?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/ideas/${params.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Error deleting idea');
+      }
+
+      router.push('/ideas');
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al eliminar la idea');
+    }
+  };
+
+  const handleComplete = async () => {
+    if (!confirm('¿Cerrar esta idea y generar resumen ejecutivo? No podrás seguir desarrollándola.')) {
+      return;
+    }
+
+    setCompleting(true);
+    try {
+      const response = await fetch(`/api/ideas/${params.id}/complete`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Error completing idea');
+      }
+
+      await loadIdea();
+      alert('✅ Idea completada con resumen ejecutivo generado');
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al completar la idea');
+    } finally {
+      setCompleting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loading />
+      </div>
+    );
+  }
+
+  if (!idea) {
+    return null;
+  }
+
+  console.log('Idea status:', idea.status, 'Type:', typeof idea.status);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white relative">
+      {/* Global AI Loading Indicator */}
+      {(expanding || replyingToExpansion || completing) && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-white rounded-full shadow-2xl px-6 py-4 flex items-center space-x-3 border-2 border-einstein-500 animate-slide-in">
+          <div className="animate-bounce">
+            <span className="text-3xl">🧠</span>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-900">
+              {completing ? 'Einstein está cerrando tu idea y actualizando tags...' : 'Einstein pensando...'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6">
+        {/* Simple Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 transition-colors font-medium"
+          >
+            <FaArrowLeft className="text-lg" />
+            <span className="hidden sm:inline">Volver</span>
+          </button>
+          
+          <div className="flex items-center space-x-2">
+            {idea.status === 'ACTIVE' && (
+              <button
+                onClick={handleComplete}
+                disabled={completing}
+                className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors disabled:opacity-50 text-sm font-medium shadow-md"
+              >
+                <FaCheckCircle />
+                <span>{completing ? 'Cerrando...' : 'Cerrar'}</span>
+              </button>
+            )}
+            <button
+              onClick={handleDelete}
+              className="text-red-500 hover:text-red-600 transition-colors p-2"
+            >
+              <FaTrash className="text-lg" />
+            </button>
+          </div>
+        </div>
+
+        {/* Completed Badge */}
+        {idea.status === 'COMPLETED' && (
+          <div className="mb-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4 flex items-center space-x-3">
+            <FaCheckCircle className="text-green-600 text-2xl" />
+            <div>
+              <p className="font-bold text-green-900">Idea completada</p>
+              <p className="text-sm text-green-700">Esta idea ya tiene su resumen ejecutivo. Revisa el resumen al final.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Export Buttons */}
+        <div className="mb-4">
+          <ExportButtons idea={idea} />
+        </div>
+
+        {/* Chat-like Interface */}
+        <div className="space-y-4 pb-64">
+          {/* Welcome message - only if no expansions */}
+          {(!idea.expansions || idea.expansions.length === 0) && (
+            <div className="flex justify-center mb-6">
+              <div className="bg-gradient-to-r from-einstein-50 to-purple-50 rounded-2xl px-6 py-4 border border-einstein-200 max-w-md text-center">
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">💭 Einstein está listo para ayudarte.</span>
+                  <br />
+                  <span className="text-xs text-gray-600">Elige una acción o escribe tu pregunta</span>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Original Idea - User Message Style */}
+          <div className="flex justify-start">
+            <div className="max-w-[85%] bg-gradient-to-br from-gray-100 to-gray-50 text-gray-800 rounded-2xl rounded-tl-sm px-6 py-4 shadow-md border-2 border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xl">💡</span>
+                  <span className="font-bold text-sm text-gray-600">Tu idea</span>
+                </div>
+                <span className="text-xs text-gray-400">
+                  {new Date(idea.createdAt).toLocaleDateString('es-ES', { 
+                    day: 'numeric', 
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </span>
+              </div>
+              <h1 className="text-xl font-bold mb-2 text-gray-900">{idea.title}</h1>
+              <p className="text-sm whitespace-pre-wrap leading-relaxed text-gray-700 mb-3">{idea.content}</p>
+              
+              {/* Tags */}
+              {idea.tags && idea.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-300">
+                  {idea.tags.map((ideaTag) => (
+                    <Link
+                      key={ideaTag.tagId}
+                      href={`/ideas?tag=${encodeURIComponent(ideaTag.tag.name)}`}
+                      className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium hover:scale-105 transition-transform cursor-pointer"
+                      style={{
+                        backgroundColor: `${ideaTag.tag.color}20`,
+                        color: ideaTag.tag.color,
+                        borderColor: ideaTag.tag.color,
+                        borderWidth: '1px',
+                      }}
+                    >
+                      {ideaTag.tag.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+              
+              {/* Tag Editor */}
+              <div className="pt-3 border-t border-gray-300 mt-3">
+                <TagEditor 
+                  ideaId={idea.id} 
+                  currentTags={idea.tags?.map(it => it.tag) || []}
+                  onTagsUpdated={loadIdea}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* AI Expansions - Chat bubbles */}
+          {idea.expansions && idea.expansions.map((expansion) => (
+            <div key={expansion.id} className="space-y-3">
+              {/* User message if exists */}
+              {expansion.userMessage && (
+                <div className="flex justify-end">
+                  <div className="max-w-[85%] bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-2xl rounded-tr-sm px-5 py-3 shadow-md">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-sm">👤</span>
+                      <span className="text-xs opacity-80">Tú</span>
+                    </div>
+                    <p className="text-sm leading-relaxed">{expansion.userMessage}</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* AI Response */}
+              <div className="flex justify-start">
+                <div className="max-w-[85%] bg-white rounded-2xl rounded-tl-sm px-6 py-4 shadow-md border border-gray-200">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <span className="text-xl">{EXPANSION_TYPE_LABELS[expansion.type].emoji}</span>
+                    <span className="font-semibold text-sm text-gray-900">
+                      {EXPANSION_TYPE_LABELS[expansion.type].label}
+                    </span>
+                    <span className="text-xs text-gray-400 ml-auto">
+                      {formatDistanceToNow(new Date(expansion.createdAt), { addSuffix: true, locale: es })}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-700 leading-relaxed space-y-3">
+                    {expansion.content.split('\n\n').map((paragraph, idx) => (
+                      <p key={idx} className="whitespace-pre-wrap">{paragraph}</p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Action Buttons - Sticky at bottom - Only show if ACTIVE */}
+          {idea.status === 'ACTIVE' && (
+            <div className="fixed bottom-0 left-0 right-0 bg-white pt-4 pb-4 shadow-lg">
+              <div className="max-w-3xl mx-auto px-4">
+                {/* Title/Context - Badge style */}
+                <div className="flex justify-center mb-3">
+                  <div className="inline-flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-full border border-gray-200">
+                    <span className="text-sm">🧠</span>
+                    <span className="text-xs text-gray-600 font-medium">Sigue desarrollando tu idea con Einstein</span>
+                  </div>
+                </div>
+              
+              {/* Quick action badges */}
+              <div className="flex justify-center flex-wrap gap-2 mb-3">
+                {[
+                  { type: 'SUGGESTION' as ExpansionType, emoji: '💡', label: 'Mejoras' },
+                  { type: 'QUESTION' as ExpansionType, emoji: '❓', label: 'Preguntas' },
+                  { type: 'CONNECTION' as ExpansionType, emoji: '🔗', label: 'Conexiones' },
+                  { type: 'USE_CASE' as ExpansionType, emoji: '🎯', label: 'Usos' },
+                  { type: 'CHALLENGE' as ExpansionType, emoji: '⚡', label: 'Desafíos' },
+                ].map((action) => (
+                  <button
+                    key={action.type}
+                    onClick={() => handleExpand(action.type)}
+                    disabled={expanding}
+                    className="group relative inline-flex items-center space-x-1.5 px-4 py-2 bg-white hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-800 text-gray-700 hover:text-white rounded-full text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-gray-200 hover:border-transparent shadow-sm hover:shadow-md transform hover:scale-105"
+                  >
+                    <span className="text-base">{action.emoji}</span>
+                    <span className="font-semibold">{action.label}</span>
+                  </button>
+                ))}
+              </div>
+              
+              {/* Main input - larger and prominent */}
+              <div className="relative">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (customMessage.trim()) {
+                      handleReplyToExpansion('', customMessage);
+                      setCustomMessage('');
+                    }
+                  }}
+                  className="flex space-x-3"
+                >
+                  <input
+                    name="customMessage"
+                    type="text"
+                    value={customMessage}
+                    onChange={(e) => setCustomMessage(e.target.value)}
+                    placeholder="Escribe tu pregunta o idea a Einstein..."
+                    disabled={expanding || replyingToExpansion !== null}
+                    className="flex-1 px-5 py-4 text-base text-gray-900 bg-white border-2 border-gray-300 rounded-2xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 disabled:opacity-50 disabled:bg-gray-100 shadow-sm placeholder:text-gray-400 transition-all"
+                  />
+                  
+                  {/* Botón de micrófono */}
+                  <VoiceRecorder 
+                    onTranscript={handleTranscript}
+                    disabled={expanding || replyingToExpansion !== null}
+                  />
+                  
+                  <button
+                    type="submit"
+                    disabled={expanding || replyingToExpansion !== null || !customMessage.trim()}
+                    className="px-6 py-4 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-2xl hover:from-gray-800 hover:to-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg transform hover:scale-105"
+                  >
+                    <span className="text-xl">➤</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
