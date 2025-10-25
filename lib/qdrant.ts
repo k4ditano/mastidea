@@ -61,8 +61,9 @@ class QdrantService {
 
   /**
    * Agrega una idea a Qdrant
+   * @returns true si se indexó correctamente, false si falló
    */
-  async addIdea(idea: IdeaPoint) {
+  async addIdea(idea: IdeaPoint): Promise<boolean> {
     try {
       await this.initialize();
 
@@ -71,8 +72,8 @@ class QdrantService {
       const embedding = await generateEmbedding(text);
 
       if (embedding.length === 0) {
-        console.warn('No se pudo generar embedding, idea no añadida a Qdrant');
-        return;
+        console.warn('⚠️ No se pudo generar embedding, idea no añadida a Qdrant');
+        return false;
       }
 
       await this.client.upsert(COLLECTION_NAME, {
@@ -90,10 +91,11 @@ class QdrantService {
         ],
       });
 
-      console.log(`Idea ${idea.id} añadida a Qdrant`);
+      console.log(`✅ Idea ${idea.id} añadida a Qdrant correctamente`);
+      return true;
     } catch (error) {
-      console.error('Error añadiendo idea a Qdrant:', error);
-      // No lanzar error para permitir que la app funcione sin Qdrant
+      console.error('❌ Error añadiendo idea a Qdrant:', error);
+      return false;
     }
   }
 

@@ -207,15 +207,18 @@ async function processIdeaInBackground(
 
     // 3. Indexar en Qdrant
     try {
-      await qdrantService.addIdea({
+      const indexed = await qdrantService.addIdea({
         id: ideaId,
         title: finalTitle,
         content: content,
         createdAt: new Date().toISOString(),
       });
-      console.log('✅ Indexado en Qdrant');
+      
+      if (!indexed) {
+        console.warn('⚠️ Idea guardada pero no se pudo indexar en Qdrant (búsqueda semántica limitada)');
+      }
     } catch (error) {
-      console.error('❌ Error indexando en Qdrant:', error);
+      console.error('❌ Error crítico indexando en Qdrant:', error);
     }
 
     // 4. Marcar como completada

@@ -29,11 +29,13 @@ export interface OpenRouterResponse {
  */
 export class OpenRouterClient {
   private apiKey: string;
-  private model: string;
+  private primaryModel: string;
+  private fallbackModel: string;
 
   constructor() {
     this.apiKey = process.env.OPENROUTER_API_KEY || '';
-    this.model = process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.1-8b-instruct:free';
+    this.primaryModel = process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.1-8b-instruct:free';
+    this.fallbackModel = 'alibaba/tongyi-deepresearch-30b-a3b'; // Modelo de pago económico
     
     if (!this.apiKey) {
       throw new Error('OPENROUTER_API_KEY no está configurada');
@@ -42,14 +44,32 @@ export class OpenRouterClient {
 
   /**
    * Genera una respuesta de chat usando OpenRouter con reintentos automáticos
+   * Intenta primero con el modelo gratuito, si falla por rate limit usa el fallback
    */
   async chat(messages: ChatMessage[], retries = 2): Promise<string> {
+    // Intento 1: Modelo primario (gratis)
+    try {
+      return await this.chatWithModel(messages, this.primaryModel, retries);
+    } catch (error) {
+      // Si es error 429 (rate limit), intentar con modelo fallback
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
+        console.warn(`⚠️ Rate limit en ${this.primaryModel}, usando fallback: ${this.fallbackModel}`);
+        return await this.chatWithModel(messages, this.fallbackModel, 1);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Realiza la llamada al API con un modelo específico
+   */
+  private async chatWithModel(messages: ChatMessage[], model: string, retries: number): Promise<string> {
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
         const response = await axios.post<OpenRouterResponse>(
           OPENROUTER_API_URL,
           {
-            model: this.model,
+            model,
             messages,
             temperature: 0.7,
             max_tokens: 2000,
@@ -71,13 +91,19 @@ export class OpenRouterClient {
         if (axios.isAxiosError(error)) {
           const status = error.response?.status;
           const isServerError = status && status >= 500;
+          const isRateLimit = status === 429;
           
-          console.error(`Error en OpenRouter API (intento ${attempt + 1}/${retries + 1}):`, {
+          console.error(`Error en OpenRouter API (modelo: ${model}, intento ${attempt + 1}/${retries + 1}):`, {
             status: error.response?.status,
             statusText: error.response?.statusText,
             data: error.response?.data,
             message: error.message,
           });
+          
+          // Si es rate limit, fallar inmediatamente para intentar con fallback
+          if (isRateLimit && model === this.primaryModel) {
+            throw error;
+          }
           
           // Si es error del servidor (5xx) y no es el último intento, reintentar
           if (isServerError && !isLastAttempt) {

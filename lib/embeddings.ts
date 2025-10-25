@@ -1,13 +1,14 @@
 /**
- * Genera embeddings para texto usando OpenRouter
- * Usa el modelo text-embedding-3-small que es GRATIS
+ * Genera embeddings para texto usando OpenAI API con fallback a OpenRouter
+ * Primero intenta con OpenAI, si falla por rate limit usa OpenRouter
  */
-export async function generateEmbedding(text: string): Promise<number[]> {
+export async function generateEmbedding(text: string, retryCount = 0): Promise<number[]> {
   try {
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
+    const openrouterKey = process.env.OPENROUTER_API_KEY;
     
-    if (!apiKey) {
-      console.warn('OPENROUTER_API_KEY no configurada - embeddings deshabilitados');
+    if (!openaiKey && !openrouterKey) {
+      console.warn('Ni OPENAI_API_KEY ni OPENROUTER_API_KEY configuradas - embeddings deshabilitados');
       return [];
     }
 
@@ -19,34 +20,20 @@ export async function generateEmbedding(text: string): Promise<number[]> {
       return [];
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/embeddings', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://mastidea.app',
-        'X-Title': 'MastIdea',
-      },
-      body: JSON.stringify({
-        model: 'openai/text-embedding-3-small', // GRATIS en OpenRouter
-        input: cleanText,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('Error generando embedding:', error);
-      return [];
+    // Intentar primero con OpenAI (más rápido y confiable)
+    if (openaiKey && retryCount === 0) {
+      const result = await tryOpenAI(cleanText);
+      if (result) return result;
+      
+      // Si falló por rate limit, intentar con OpenRouter
+      console.log('🔄 Cambiando a OpenRouter como fallback...');
     }
 
-    const data = await response.json();
-    
-    if (data.data && data.data[0] && data.data[0].embedding) {
-      console.log(`Embedding generado: ${data.data[0].embedding.length} dimensiones`);
-      return data.data[0].embedding;
+    // Fallback a OpenRouter
+    if (openrouterKey) {
+      return await tryOpenRouter(cleanText);
     }
 
-    console.warn('Respuesta de embedding sin datos válidos');
     return [];
   } catch (error) {
     console.error('Error en generateEmbedding:', error);
@@ -55,14 +42,114 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 }
 
 /**
- * Genera embeddings para múltiples textos
+ * Intenta generar embedding con OpenAI
+ */
+async function tryOpenAI(text: string): Promise<number[] | null> {
+  try {
+    const response = await fetch('https://api.openai.com/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'text-embedding-3-small',
+        input: text,
+        encoding_format: 'float',
+      }),
+    });
+
+    if (response.status === 429) {
+      console.warn('⚠️ OpenAI rate limit alcanzado (429)');
+      return null;
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error en OpenAI embeddings:', {
+        status: response.status,
+        error: errorText.substring(0, 200),
+      });
+      return null;
+    }
+
+    const data = await response.json();
+    
+    if (data.data && data.data[0] && data.data[0].embedding) {
+      console.log(`✅ Embedding OpenAI generado: ${data.data[0].embedding.length} dimensiones`);
+      return data.data[0].embedding;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error en tryOpenAI:', error);
+    return null;
+  }
+}
+
+/**
+ * Genera embedding con OpenRouter (fallback)
+ */
+async function tryOpenRouter(text: string): Promise<number[]> {
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://mastidea.app',
+        'X-Title': 'MastIdea',
+      },
+      body: JSON.stringify({
+        model: 'openai/text-embedding-3-small',
+        input: text,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error en OpenRouter embeddings:', {
+        status: response.status,
+        error: errorText.substring(0, 200),
+      });
+      return [];
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error('OpenRouter respuesta no es JSON:', contentType);
+      return [];
+    }
+
+    const data = await response.json();
+    
+    if (data.data && data.data[0] && data.data[0].embedding) {
+      console.log(`✅ Embedding OpenRouter generado: ${data.data[0].embedding.length} dimensiones`);
+      return data.data[0].embedding;
+    }
+
+    console.warn('OpenRouter respuesta sin datos válidos');
+    return [];
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      console.error('Error parseando respuesta JSON de OpenRouter:', error.message);
+    } else {
+      console.error('Error en tryOpenRouter:', error);
+    }
+    return [];
+  }
+}
+
+/**
+ * Genera embeddings para múltiples textos con fallback
  */
 export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
   try {
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
+    const openrouterKey = process.env.OPENROUTER_API_KEY;
     
-    if (!apiKey) {
-      console.warn('OPENROUTER_API_KEY no configurada - embeddings deshabilitados');
+    if (!openaiKey && !openrouterKey) {
+      console.warn('Ni OPENAI_API_KEY ni OPENROUTER_API_KEY configuradas - embeddings deshabilitados');
       return [];
     }
 
@@ -76,23 +163,47 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
       return [];
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/embeddings', {
+    // Intentar primero con OpenAI
+    if (openaiKey) {
+      const result = await tryOpenAIBatch(cleanTexts);
+      if (result.length > 0) return result;
+      
+      console.log('🔄 Cambiando a OpenRouter para batch...');
+    }
+
+    // Fallback a OpenRouter
+    if (openrouterKey) {
+      return await tryOpenRouterBatch(cleanTexts);
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error en generateEmbeddings:', error);
+    return [];
+  }
+}
+
+async function tryOpenAIBatch(texts: string[]): Promise<number[][]> {
+  try {
+    const response = await fetch('https://api.openai.com/v1/embeddings', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://mastidea.app',
-        'X-Title': 'MastIdea',
       },
       body: JSON.stringify({
-        model: 'openai/text-embedding-3-small',
-        input: cleanTexts,
+        model: 'text-embedding-3-small',
+        input: texts,
+        encoding_format: 'float',
       }),
     });
 
+    if (response.status === 429) {
+      console.warn('⚠️ OpenAI batch rate limit alcanzado');
+      return [];
+    }
+
     if (!response.ok) {
-      const error = await response.text();
-      console.error('Error generando embeddings batch:', error);
       return [];
     }
 
@@ -100,14 +211,53 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
     
     if (data.data && Array.isArray(data.data)) {
       const embeddings = data.data.map((item: { embedding: number[] }) => item.embedding);
-      console.log(`${embeddings.length} embeddings generados`);
+      console.log(`✅ ${embeddings.length} embeddings OpenAI generados (batch)`);
       return embeddings;
     }
 
-    console.warn('Respuesta de embeddings batch sin datos válidos');
     return [];
   } catch (error) {
-    console.error('Error en generateEmbeddings:', error);
+    console.error('Error en tryOpenAIBatch:', error);
+    return [];
+  }
+}
+
+async function tryOpenRouterBatch(texts: string[]): Promise<number[][]> {
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://mastidea.app',
+        'X-Title': 'MastIdea',
+      },
+      body: JSON.stringify({
+        model: 'openai/text-embedding-3-small',
+        input: texts,
+      }),
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      return [];
+    }
+
+    const data = await response.json();
+    
+    if (data.data && Array.isArray(data.data)) {
+      const embeddings = data.data.map((item: { embedding: number[] }) => item.embedding);
+      console.log(`✅ ${embeddings.length} embeddings OpenRouter generados (batch)`);
+      return embeddings;
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error en tryOpenRouterBatch:', error);
     return [];
   }
 }
