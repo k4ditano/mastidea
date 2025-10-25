@@ -708,6 +708,10 @@ npx prisma db push       # Push schema a DB (dev rápido)
 ./dev-start.sh           # Inicia entorno completo
 ./dev-stop.sh            # Detiene contenedores
 docker-compose logs -f   # Ver logs en tiempo real
+
+# App de Escritorio (Linux)
+./build-desktop.sh       # Genera AppImage (recomendado para Arch)
+./build-desktop.sh deb   # Genera paquete DEB
 ```
 
 ### 🌐 Deployment
@@ -730,6 +734,52 @@ vercel
 Alternativas que incluyen Docker nativo:
 - [Railway](https://railway.app/)
 - [Render](https://render.com/)
+
+#### App de Escritorio (Linux)
+
+Genera una aplicación de escritorio nativa para Linux usando [Pake](https://github.com/tw93/Pake):
+
+**Requisitos previos (ArchLinux):**
+```bash
+# Instalar dependencias del sistema
+sudo pacman -S webkit2gtk base-devel libayatana-appindicator
+
+# Instalar Pake CLI globalmente
+pnpm install -g pake-cli
+```
+
+**Generar la app:**
+```bash
+# Opción 1: AppImage (recomendado para Arch)
+./build-desktop.sh
+
+# Opción 2: Paquete DEB (convertible a pkg.tar.zst con debtap)
+./build-desktop.sh deb
+```
+
+El script te guiará para elegir:
+- **Servidor local** (http://localhost:3000) - Para pruebas rápidas
+- **URL de producción** - Para la versión final
+- **Archivos estáticos** - Empaqueta el build de Next.js
+
+**Ejecutar la app:**
+```bash
+# AppImage
+chmod +x ./desktop-builds/Mastidea*.AppImage
+./desktop-builds/Mastidea*.AppImage
+
+# DEB (convertir primero con debtap en Arch)
+debtap ./desktop-builds/Mastidea*.deb
+sudo pacman -U Mastidea*.pkg.tar.zst
+```
+
+**Características de la app de escritorio:**
+- 📦 ~5MB de tamaño (vs ~150MB de Electron)
+- 🚀 Rendimiento nativo con Tauri
+- 🎨 Icono y nombre personalizados
+- 🔔 Bandeja del sistema
+- 🖥️ Ventana sin barra de título
+- ⌨️ Atajos de teclado nativos
 
 ### 🔐 Seguridad
 

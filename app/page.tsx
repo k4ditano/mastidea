@@ -158,11 +158,6 @@ export default function Home() {
                   <span>{t('developIdea')}</span>
                 </>
               )}
-                <>
-                  <FaRocket />
-                  <span>Desarrollar idea con MastIdea</span>
-                </>
-              )}
             </button>
           </form>
         </div>
