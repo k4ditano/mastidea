@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import InstallPWA from "@/components/InstallPWA";
@@ -28,14 +30,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <ClerkProvider>
-      <html lang="es">
+      <html lang={locale}>
         <head>
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
           <link rel="manifest" href="/manifest.json" />
@@ -44,9 +49,11 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <Navbar />
-          {children}
-          <InstallPWA />
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <Navbar />
+            {children}
+            <InstallPWA />
+          </NextIntlClientProvider>
         </body>
       </html>
     </ClerkProvider>

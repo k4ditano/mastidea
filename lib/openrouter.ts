@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { type Locale } from './i18n-server';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -102,8 +103,9 @@ export class OpenRouterClient {
   /**
    * Genera la primera expansión automática de una idea
    */
-  async generateInitialExpansion(ideaTitle: string, ideaContent: string): Promise<string> {
-    const systemPrompt = `Eres Einstein ayudando a desarrollar ideas. Hablas con entusiasmo pero DIRECTO AL GRANO.
+  async generateInitialExpansion(ideaTitle: string, ideaContent: string, locale: Locale = 'es'): Promise<string> {
+    const systemPrompt = locale === 'es' 
+      ? `Eres Einstein ayudando a desarrollar ideas. Hablas con entusiasmo pero DIRECTO AL GRANO.
 
 Tu estilo:
 - Claro y conciso, sin rodeos
@@ -131,14 +133,50 @@ REGLAS DE FORMATO:
 - NO uses **, _, ###
 - Texto simple con números o guiones
 - URLs directas sin formato
-- Máximo 4-5 párrafos cortos`;
+- Máximo 4-5 párrafos cortos`
+      : `You are Einstein helping to develop ideas. You speak with enthusiasm but GET STRAIGHT TO THE POINT.
 
-    const userPrompt = `He tenido esta idea:
+Your style:
+- Clear and concise, no beating around the bush
+- Use concrete examples, not complicated metaphors
+- Direct questions that help with execution
+- Enthusiastic but practical
+- Search the internet for REAL examples
+
+When evaluating an idea:
+1. Quickly search if something similar exists (name + URL if you find it)
+2. Clearly state what EXISTS and what DOESN'T exist
+3. Ask 3-4 PRACTICAL questions (about execution, costs, market)
+4. Suggest 1-2 concrete next steps
+
+How to cite what you find:
+"I've searched and there's X in the market that does Y (url if you have it). BUT your idea differs in Z."
+
+What you should NOT do:
+- No "as my grandmother used to say", "well well", "it's like..."
+- No long metaphors or poetry
+- No indirect stories
+- Get to the point quickly
+
+FORMAT RULES:
+- DO NOT use **, _, ###
+- Plain text with numbers or dashes
+- Direct URLs without formatting
+- Maximum 4-5 short paragraphs`;
+
+    const userPrompt = locale === 'es'
+      ? `He tenido esta idea:
 
 Título: ${ideaTitle}
 Descripción: ${ideaContent}
 
-Ayúdame a explorarla y expandirla. ¿Qué preguntas, conexiones o mejoras sugerirías?`;
+Ayúdame a explorarla y expandirla. ¿Qué preguntas, conexiones o mejoras sugerirías?`
+      : `I had this idea:
+
+Title: ${ideaTitle}
+Description: ${ideaContent}
+
+Help me explore and expand it. What questions, connections or improvements would you suggest?`;
 
     return this.chat([
       { role: 'system', content: systemPrompt },

@@ -1,0 +1,185 @@
+{
+  "common": {
+    "back": "Volver",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "loading": "Cargando...",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "share": "Compartir"
+  },
+  "navbar": {
+    "home": "Inicio",
+    "ideas": "Ideas",
+    "graph": "Grafo",
+    "tags": "Tags",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión"
+  },
+  "home": {
+    "title": "MastIdea",
+    "subtitle": "La imaginación es más importante que el conocimiento",
+    "quote1": "La imaginación es más importante que el conocimiento",
+    "quote2": "La creatividad es la inteligencia divirtiéndose",
+    "quote3": "Si buscas resultados distintos, no hagas siempre lo mismo",
+    "quote4": "La lógica te llevará de A a B. La imaginación te llevará a cualquier parte",
+    "quote5": "No pretendamos que las cosas cambien si siempre hacemos lo mismo",
+    "quoteAuthor": "Albert Einstein",
+    "placeholder": "Escribe tu idea aquí... MastIdea creará un título automáticamente y te ayudará a desarrollarla 🧠",
+    "writeYourIdea": "Escribe tu idea rápidamente",
+    "developIdea": "Desarrollar idea con MastIdea",
+    "thinking": "MastIdea está pensando...",
+    "recentIdeas": "Tus ideas recientes",
+    "emptyIdea": "Por favor escribe tu idea",
+    "errorCreating": "Error al crear la idea. Por favor intenta de nuevo."
+  },
+  "idea": {
+    "yourIdea": "Tu idea",
+    "completed": "Completada",
+    "completedDescription": "Esta idea ya tiene su resumen ejecutivo. Revisa el resumen al final.",
+    "closeIdea": "Cerrar",
+    "closing": "Cerrando...",
+    "confirmClose": "¿Cerrar esta idea y generar resumen ejecutivo? No podrás seguir desarrollándola.",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar esta idea?",
+    "moveToTrash": "Idea movida a papelera",
+    "errorDeleting": "Error al eliminar la idea",
+    "errorCompleting": "Error al completar la idea",
+    "ideaCompleted": "✅ Idea completada con resumen ejecutivo generado",
+    "errorClosing": "Error al cerrar la idea y actualizar tags",
+    "aiThinking": "MastIdea pensando...",
+    "aiProcessing": "🤖 IA procesando en segundo plano (título, tags, expansión)...",
+    "aiProcessingNote": "La página se actualizará automáticamente",
+    "continueDeveloping": "Sigue desarrollando tu idea con MastIdea",
+    "writeQuestion": "Escribe tu pregunta o comentario...",
+    "aiReady": "💭 MastIdea está lista para ayudarte.",
+    "aiReadySubtext": "Elige una acción o escribe tu pregunta"
+  },
+  "ideas": {
+    "title": "Mis Ideas",
+    "searchPlaceholder": "Buscar ideas...",
+    "filterAll": "Todas",
+    "filterActive": "Activas",
+    "filterCompleted": "Completadas",
+    "filterArchived": "Archivadas",
+    "noIdeas": "No hay ideas todavía",
+    "noIdeasDescription": "¡Comienza a capturar tus ideas brillantes!",
+    "createFirstIdea": "Crear mi primera idea",
+    "archivedIdeas": "Ideas archivadas",
+    "total": "idea(s) encontrada(s)",
+    "byTag": "Ideas con etiqueta"
+  },
+  "archived": {
+    "title": "Ideas Archivadas",
+    "description": "Ideas que has archivado. Puedes desarchivarlas o eliminarlas permanentemente.",
+    "noArchived": "No hay ideas archivadas",
+    "unarchive": "Desarchivar",
+    "permanentDelete": "Eliminar",
+    "confirmDelete": "¿Eliminar permanentemente esta idea?",
+    "unarchived": "Idea desarchivada",
+    "deleted": "Idea eliminada"
+  },
+  "actions": {
+    "edit": "Editar",
+    "reopen": "Reabrir",
+    "fork": "Duplicar",
+    "forkSimple": "Simple",
+    "forkWithExpansions": "Con expansiones",
+    "archive": "Archivar",
+    "delete": "Eliminar",
+    "editIdea": "Editar Idea",
+    "title": "Título",
+    "content": "Contenido",
+    "regenerateAnalysis": "Regenerar análisis de éxito",
+    "saving": "Guardando...",
+    "saved": "Idea actualizada",
+    "reopening": "Reabriendo...",
+    "reopened": "Idea reabierta",
+    "duplicating": "Duplicando...",
+    "duplicated": "Idea duplicada",
+    "archiving": "Archivando...",
+    "archived": "Idea archivada"
+  },
+  "expansions": {
+    "improvements": "Mejoras",
+    "questions": "Preguntas",
+    "connections": "Conexiones",
+    "useCases": "Usos",
+    "challenges": "Desafíos",
+    "labels": {
+      "AUTO_EXPANSION": "Primera exploración",
+      "SUGGESTION": "Sugerencias",
+      "QUESTION": "Preguntas",
+      "CONNECTION": "Conexiones",
+      "USE_CASE": "Casos de uso",
+      "CHALLENGE": "Desafíos",
+      "SUMMARY": "Resumen ejecutivo"
+    }
+  },
+  "tags": {
+    "title": "Gestión de Tags",
+    "allTags": "Todos los tags",
+    "editTags": "Editar tags",
+    "addTag": "Añadir tag",
+    "createNew": "Crear nuevo tag",
+    "tagName": "Nombre del tag",
+    "color": "Color",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "confirmDelete": "¿Eliminar este tag? Se desasociará de todas las ideas.",
+    "noTags": "No hay tags todavía",
+    "ideasWithTag": "ideas con este tag",
+    "created": "Tag creado",
+    "updated": "Tag actualizado",
+    "deleted": "Tag eliminado"
+  },
+  "export": {
+    "pdf": "Exportar PDF",
+    "markdown": "Exportar Markdown",
+    "text": "Exportar Texto",
+    "exporting": "Exportando..."
+  },
+  "graph": {
+    "title": "Grafo de Ideas",
+    "description": "Visualización de conexiones entre ideas basada en similitud semántica",
+    "loading": "Cargando grafo...",
+    "noIdeas": "No hay suficientes ideas para mostrar el grafo",
+    "createMore": "Crea más ideas para ver las conexiones"
+  },
+  "success": {
+    "score": "Puntuación de éxito",
+    "analysis": "Análisis de viabilidad"
+  },
+  "voice": {
+    "startRecording": "Comenzar grabación",
+    "stopRecording": "Detener grabación",
+    "recording": "Grabando...",
+    "processing": "Procesando audio...",
+    "error": "Error al transcribir audio"
+  },
+  "pwa": {
+    "installTitle": "Instalar MastIdea",
+    "installMessage": "¿Quieres instalar MastIdea en tu dispositivo?",
+    "install": "Instalar",
+    "later": "Más tarde"
+  },
+  "errors": {
+    "generic": "Ha ocurrido un error",
+    "notFound": "No encontrado",
+    "unauthorized": "No autorizado",
+    "serverError": "Error del servidor",
+    "networkError": "Error de conexión"
+  },
+  "ai": {
+    "systemPrompts": {
+      "title": "Eres Einstein creando títulos brillantes. Crea un título corto (máximo 8 palabras), creativo e inspirador que capture la esencia. Sin comillas, sin puntos. Como si fuera el nombre de un descubrimiento fascinante. Solo el título, nada más.",
+      "expansion": "Eres un asistente creativo que ayuda a desarrollar ideas. Expande la siguiente idea de manera constructiva y detallada.",
+      "tags": "Genera tags relevantes para esta idea. Responde solo con los nombres de los tags separados por comas.",
+      "analysis": "Analiza la viabilidad y potencial de éxito de esta idea. Proporciona un análisis detallado."
+    }
+  }
+}

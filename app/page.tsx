@@ -2,28 +2,31 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import IdeaCard from '@/components/IdeaCard';
 import Loading from '@/components/Loading';
 import VoiceRecorder from '@/components/VoiceRecorder';
 import { Idea } from '@/types';
 import { FaRocket } from 'react-icons/fa';
 
-const EINSTEIN_QUOTES = [
-  "La imaginación es más importante que el conocimiento",
-  "La creatividad es la inteligencia divirtiéndose",
-  "Si buscas resultados distintos, no hagas siempre lo mismo",
-  "La lógica te llevará de A a B. La imaginación te llevará a cualquier parte",
-  "No pretendamos que las cosas cambien si siempre hacemos lo mismo",
-];
-
 export default function Home() {
   const router = useRouter();
+  const t = useTranslations('home');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [recentIdeas, setRecentIdeas] = useState<Idea[]>([]);
   const [loadingIdeas, setLoadingIdeas] = useState(true);
+  
+  const quotes = [
+    t('quote1'),
+    t('quote2'),
+    t('quote3'),
+    t('quote4'),
+    t('quote5'),
+  ];
+  
   const [randomQuote] = useState(() => 
-    EINSTEIN_QUOTES[Math.floor(Math.random() * EINSTEIN_QUOTES.length)]
+    quotes[Math.floor(Math.random() * quotes.length)]
   );
 
   const handleTranscript = (text: string) => {
@@ -51,7 +54,7 @@ export default function Home() {
     e.preventDefault();
     
     if (!content.trim()) {
-      alert('Por favor escribe tu idea');
+      alert(t('emptyIdea'));
       return;
     }
 
@@ -73,7 +76,7 @@ export default function Home() {
       router.push('/ideas');
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al crear la idea. Por favor intenta de nuevo.');
+      alert(t('errorCreating'));
       setLoading(false);
     }
   };
@@ -92,7 +95,7 @@ export default function Home() {
           <p className="text-xl text-gray-600 italic mb-2">
             "{randomQuote}"
           </p>
-          <p className="text-sm text-gray-500">— Albert Einstein</p>
+          <p className="text-sm text-gray-500">— {t('quoteAuthor')}</p>
         </div>
 
         {/* Capture Form - Simple Chat Style */}
@@ -100,7 +103,7 @@ export default function Home() {
           <div className="flex justify-center mb-4">
             <div className="inline-flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-full border border-gray-200">
               <span className="text-sm">💭</span>
-              <span className="text-sm text-gray-600 font-medium">Escribe tu idea rápidamente</span>
+              <span className="text-sm text-gray-600 font-medium">{t('writeYourIdea')}</span>
             </div>
           </div>
           
@@ -110,7 +113,7 @@ export default function Home() {
                 id="content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Escribe tu idea aquí... MastIdea creará un título automáticamente y te ayudará a desarrollarla 🧠"
+                placeholder={t('placeholder')}
                 rows={8}
                 className="
                   w-full px-5 py-4 rounded-2xl text-base
@@ -147,9 +150,14 @@ export default function Home() {
               {loading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>MastIdea está pensando...</span>
+                  <span>{t('thinking')}</span>
                 </>
               ) : (
+                <>
+                  <FaRocket />
+                  <span>{t('developIdea')}</span>
+                </>
+              )}
                 <>
                   <FaRocket />
                   <span>Desarrollar idea con MastIdea</span>
@@ -163,7 +171,7 @@ export default function Home() {
         {!loadingIdeas && recentIdeas.length > 0 && (
           <div className="animate-fade-in">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-              Tus ideas recientes
+              {t('recentIdeas')}
             </h2>
             <div className="grid gap-4 sm:grid-cols-1">
               {recentIdeas.map((idea) => (

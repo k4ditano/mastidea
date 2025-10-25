@@ -4,16 +4,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserButton, useUser } from '@clerk/nextjs';
 import { FaBrain, FaLightbulb, FaProjectDiagram, FaTags } from 'react-icons/fa';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { useTranslations } from 'next-intl';
 
 export default function Navbar() {
   const pathname = usePathname();
   const { isSignedIn } = useUser();
+  const t = useTranslations('navbar');
 
   const navItems = [
-    { href: '/', label: 'Inicio', icon: FaLightbulb },
-    { href: '/ideas', label: 'Mis Ideas', icon: FaBrain },
-    { href: '/tags', label: 'Tags', icon: FaTags },
-    { href: '/graph', label: 'Grafo', icon: FaProjectDiagram },
+    { href: '/', label: t('home'), icon: FaLightbulb },
+    { href: '/ideas', label: t('ideas'), icon: FaBrain },
+    { href: '/tags', label: t('tags'), icon: FaTags },
+    { href: '/graph', label: t('graph'), icon: FaProjectDiagram },
   ];
 
   return (
@@ -56,6 +59,11 @@ export default function Navbar() {
               );
             })}
             
+            {/* Language Switcher */}
+            <div className="ml-2">
+              <LanguageSwitcher />
+            </div>
+            
             {/* User Button */}
             <div className="ml-4 flex items-center">
               {isSignedIn ? (
@@ -65,7 +73,7 @@ export default function Navbar() {
                   href="/sign-in"
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
                 >
-                  Iniciar sesión
+                  {t('signIn')}
                 </Link>
               )}
             </div>
