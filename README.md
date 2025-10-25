@@ -386,7 +386,13 @@ Alternatives that include native Docker:
   - [x] All core components translated
   - [x] Date formatting by language
   - [ ] Remaining secondary pages (Graph, Archived, Evaluate)
-- [ ] **Multi-user authentication** ⏳ 0%
+- [x] **Multi-user authentication** ✅ 100%
+  - [x] Clerk integration
+  - [x] Secure authentication (email, Google, GitHub, etc.)
+  - [x] Data isolation per user
+  - [x] Automatic session management
+  - [x] User profile and settings
+  - [x] Free plan: 10,000 active users/month
 - [ ] **Publicly share ideas** ⏳ 0%
 - [ ] **Native app (React Native)** ⏳ 0%
 
@@ -790,7 +796,13 @@ Alternativas que incluyen Docker nativo:
   - [x] Todos los componentes principales traducidos
   - [x] Formato de fechas por idioma
   - [ ] Páginas secundarias pendientes (Graph, Archived, Evaluate)
-- [ ] **Autenticación multi-usuario** ⏳ 0%
+- [x] **Autenticación multi-usuario** ✅ 100%
+  - [x] Integración con Clerk
+  - [x] Autenticación segura (email, Google, GitHub, etc.)
+  - [x] Aislamiento de datos por usuario
+  - [x] Gestión automática de sesiones
+  - [x] Perfil de usuario y configuración
+  - [x] Plan gratuito: 10,000 usuarios activos/mes
 - [ ] **Compartir ideas públicamente** ⏳ 0%
 - [ ] **App nativa (React Native)** ⏳ 0%
 
