@@ -2,7 +2,7 @@ import { QdrantClient } from '@qdrant/js-client-rest';
 import { generateEmbedding } from './embeddings';
 
 const COLLECTION_NAME = process.env.QDRANT_COLLECTION || 'mastidea_ideas';
-const VECTOR_SIZE = 3072; // Tamaño de embeddings de text-embedding-3-large
+const VECTOR_SIZE = 1536; // Tamaño de embeddings de text-embedding-3-small (OpenRouter)
 
 export interface IdeaPoint {
   id: string;

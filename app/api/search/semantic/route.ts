@@ -1,45 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { qdrantService } from '@/lib/qdrant';
 import { auth } from '@clerk/nextjs/server';
+import { qdrantService } from '@/lib/qdrant';
 import { prisma } from '@/lib/prisma';
 
 /**
- * GET /api/search?q=query&limit=10
- * Búsqueda semántica de ideas usando Qdrant + PostgreSQL
+ * GET /api/search/semantic?q=query&limit=10
+ * Búsqueda semántica de ideas usando Qdrant
  */
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
+    
     if (!userId) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      );
     }
 
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('q');
     const limit = parseInt(searchParams.get('limit') || '10');
 
     if (!query || query.trim().length === 0) {
       return NextResponse.json(
-        { error: 'Query parameter "q" is required' },
+        { error: 'Query requerido' },
         { status: 400 }
       );
     }
 
     console.log(`🔍 Búsqueda semántica: "${query}" (límite: ${limit})`);
 
-    // Buscar en Qdrant (búsqueda vectorial)
+    // Buscar en Qdrant
     const similarIdeas = await qdrantService.findSimilarIdeas(query, limit);
 
     if (similarIdeas.length === 0) {
       return NextResponse.json({
-        query,
         results: [],
         count: 0,
-        message: 'No se encontraron ideas similares. Intenta con otras palabras o crea una nueva idea.',
+        message: 'No se encontraron ideas similares',
       });
     }
 
-    // Obtener detalles completos de PostgreSQL
+    // Obtener detalles completos de las ideas desde PostgreSQL
     const ideaIds = similarIdeas.map(idea => idea.id);
     const fullIdeas = await prisma.idea.findMany({
       where: {
@@ -50,7 +53,6 @@ export async function GET(request: NextRequest) {
       include: {
         expansions: {
           orderBy: { createdAt: 'desc' },
-          take: 3, // Solo las 3 más recientes para no sobrecargar
         },
         tags: {
           include: {
@@ -60,7 +62,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Combinar con scores de Qdrant y ordenar por relevancia
+    // Combinar con scores de similitud de Qdrant
     const results = fullIdeas.map(idea => {
       const similarIdea = similarIdeas.find(s => s.id === idea.id);
       return {
@@ -69,17 +71,17 @@ export async function GET(request: NextRequest) {
       };
     }).sort((a, b) => b.similarityScore - a.similarityScore);
 
-    console.log(`✅ ${results.length} ideas encontradas (scores: ${results.map(r => r.similarityScore.toFixed(3)).join(', ')})`);
+    console.log(`✅ Encontradas ${results.length} ideas (scores: ${results.map(r => r.similarityScore.toFixed(3)).join(', ')})`);
 
     return NextResponse.json({
-      query,
       results,
       count: results.length,
+      query,
     });
   } catch (error) {
-    console.error('Error en búsqueda:', error);
+    console.error('Error en búsqueda semántica:', error);
     return NextResponse.json(
-      { error: 'Error al buscar ideas' },
+      { error: 'Error en la búsqueda' },
       { status: 500 }
     );
   }

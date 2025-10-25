@@ -59,14 +59,27 @@ function IdeasContent() {
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
+      setSearching(false);
       return;
     }
 
     setSearching(true);
     try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&limit=10`);
+      console.log('🔍 Búsqueda semántica:', searchQuery);
+      const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&limit=20`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
+      console.log(`✅ Encontradas ${data.count || 0} ideas`);
       setSearchResults(data.results || []);
+      
+      // Si no hay resultados, mostrar mensaje
+      if (data.count === 0) {
+        console.log('💡 No se encontraron resultados');
+      }
     } catch (error) {
       console.error('Error searching:', error);
       setSearchResults([]);
@@ -272,12 +285,26 @@ function IdeasContent() {
                 </button>
               )}
             </div>
+            {/* Search hint */}
+            {!searchQuery && !searchResults.length && (
+              <div className="mt-3 text-sm text-gray-500 flex items-center space-x-2">
+                <span>💡</span>
+                <span>
+                  Prueba buscar: &quot;ideas sobre educación&quot;, &quot;proyectos de IA&quot;, &quot;innovación tecnológica&quot;...
+                </span>
+              </div>
+            )}
           </div>
 
           {searchResults.length > 0 && (
-            <p className="mt-4 text-gray-600">
-              {t('searchResults', { count: searchResults.length })}
-            </p>
+            <div className="mt-4">
+              <p className="text-gray-700 font-medium">
+                ✨ {t('searchResults', { count: searchResults.length })}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                Ordenadas por relevancia semántica usando IA
+              </p>
+            </div>
           )}
         </div>
 
