@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { openRouterClient } from '@/lib/openrouter';
 import { auth } from '@clerk/nextjs/server';
+import { getLocale } from '@/lib/i18n-server';
 
 // Colores predefinidos para tags
 const TAG_COLORS = [
@@ -117,11 +118,14 @@ Crea el resumen ejecutivo ahora.`
       }
     ]);
 
+    const locale = await getLocale();
+    
     // Analizar potencial de éxito con IA
     const successAnalysisResult = await openRouterClient.analyzeSuccess(
       idea.title,
       idea.content,
-      idea.expansions.map((exp: { content: string }) => exp.content)
+      idea.expansions.map((exp: { content: string }) => exp.content),
+      locale
     );
 
     // Guardar el resumen como una expansión especial tipo SUMMARY
@@ -148,7 +152,8 @@ Crea el resumen ejecutivo ahora.`
       const newTagNames = await openRouterClient.generateTags(
         idea.title,
         fullContext,
-        existingTagNames
+        existingTagNames,
+        locale
       );
 
       // Obtener tags actuales de la idea

@@ -2,11 +2,24 @@
 
 import { Idea } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
 import Link from 'next/link';
 import { FaChevronRight, FaComments, FaCheckCircle, FaStar, FaRobot, FaExclamationTriangle } from 'react-icons/fa';
 import TagBadge from './TagBadge';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
+
+function getDateLocale(locale: string) {
+  return locale === 'es' ? es : enUS;
+}
+
+function getCurrentLocale() {
+  if (typeof window === 'undefined') return 'es';
+  const cookie = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('locale='));
+  return cookie ? cookie.split('=')[1] : 'es';
+}
 
 interface IdeaCardProps {
   idea: Idea;
@@ -14,8 +27,11 @@ interface IdeaCardProps {
 }
 
 export default function IdeaCard({ idea, onTagClick }: IdeaCardProps) {
+  const tIdea = useTranslations('idea');
   const expansionCount = idea.expansions?.length || 0;
   const [aiStatus, setAiStatus] = useState(idea.aiProcessingStatus || 'COMPLETED');
+  const locale = getCurrentLocale();
+  const dateLocale = getDateLocale(locale);
 
   // Polling para actualizar el estado de IA
   useEffect(() => {
@@ -59,7 +75,7 @@ export default function IdeaCard({ idea, onTagClick }: IdeaCardProps) {
               <div className="flex items-center space-x-2 mb-2 animate-pulse">
                 <FaRobot className="text-einstein-500 text-sm" />
                 <span className="text-xs font-semibold text-einstein-600 uppercase tracking-wide">
-                  IA procesando...
+                  {locale === 'es' ? 'IA procesando...' : 'AI processing...'}
                 </span>
                 <div className="flex space-x-1">
                   <div className="w-1.5 h-1.5 bg-einstein-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
@@ -74,7 +90,7 @@ export default function IdeaCard({ idea, onTagClick }: IdeaCardProps) {
               <div className="flex items-center space-x-2 mb-2">
                 <FaExclamationTriangle className="text-yellow-600 text-sm" />
                 <span className="text-xs font-semibold text-yellow-700 uppercase tracking-wide">
-                  Error en IA
+                  {locale === 'es' ? 'Error en IA' : 'AI Error'}
                 </span>
               </div>
             )}
@@ -84,7 +100,7 @@ export default function IdeaCard({ idea, onTagClick }: IdeaCardProps) {
               <div className="flex items-center space-x-3 mb-2">
                 <div className="flex items-center space-x-2">
                   <FaCheckCircle className="text-green-600 text-sm" />
-                  <span className="text-xs font-semibold text-green-700 uppercase tracking-wide">Completada</span>
+                  <span className="text-xs font-semibold text-green-700 uppercase tracking-wide">{tIdea('completed')}</span>
                 </div>
                 {idea.successScore && (
                   <div className="flex items-center space-x-1 px-2 py-0.5 bg-green-100 rounded-full">
@@ -132,14 +148,14 @@ export default function IdeaCard({ idea, onTagClick }: IdeaCardProps) {
             {expansionCount > 0 && (
               <span className="flex items-center space-x-1">
                 <FaComments className="text-einstein-500" />
-                <span>{expansionCount} {expansionCount === 1 ? 'expansión' : 'expansiones'}</span>
+                <span>{expansionCount} {locale === 'es' ? (expansionCount === 1 ? 'expansión' : 'expansiones') : (expansionCount === 1 ? 'expansion' : 'expansions')}</span>
               </span>
             )}
           </div>
           <span>
             {formatDistanceToNow(new Date(idea.createdAt), { 
               addSuffix: true,
-              locale: es 
+              locale: dateLocale
             })}
           </span>
         </div>

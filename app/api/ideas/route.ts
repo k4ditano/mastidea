@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { openRouterClient } from '@/lib/openrouter';
 import { qdrantService } from '@/lib/qdrant';
+import { getLocale } from '@/lib/i18n-server';
 import { z } from 'zod';
 
 const createIdeaSchema = z.object({
@@ -105,14 +106,21 @@ async function processIdeaInBackground(
 ) {
   try {
     console.log(`🚀 Procesando idea ${ideaId} en segundo plano...`);
+    const locale = await getLocale();
     let finalTitle = initialTitle;
 
     // 1. Generar título con IA si es temporal
     if (initialTitle.endsWith('...') && initialTitle.length <= 53) {
       try {
+        const titlePrompt = locale === 'es'
+          ? 'Eres Einstein creando títulos brillantes. Crea un título corto (máximo 8 palabras), creativo e inspirador que capture la esencia. Sin comillas, sin puntos. Como si fuera el nombre de un descubrimiento fascinante. Solo el título, nada más.'
+          : 'You are Einstein creating brilliant titles. Create a short title (maximum 8 words), creative and inspiring that captures the essence. No quotes, no periods. As if it were the name of a fascinating discovery. Just the title, nothing else.';
+        
+        const userPrompt = locale === 'es' ? `Idea: ${content}` : `Idea: ${content}`;
+        
         const generatedTitle = await openRouterClient.chat([
-          { role: 'system', content: 'Eres Einstein creando títulos brillantes. Crea un título corto (máximo 8 palabras), creativo e inspirador que capture la esencia. Sin comillas, sin puntos. Como si fuera el nombre de un descubrimiento fascinante. Solo el título, nada más.' },
-          { role: 'user', content: `Idea: ${content}` }
+          { role: 'system', content: titlePrompt },
+          { role: 'user', content: userPrompt }
         ]);
         finalTitle = generatedTitle.trim().substring(0, 100);
         
@@ -140,7 +148,8 @@ async function processIdeaInBackground(
           const suggestedTagNames = await openRouterClient.generateTags(
             finalTitle,
             content,
-            existingTagNames
+            existingTagNames,
+            locale
           );
 
           console.log(`📋 Tags sugeridos por IA: ${suggestedTagNames.join(', ')}`);
@@ -178,7 +187,8 @@ async function processIdeaInBackground(
           console.log('💡 Generando expansión inicial...');
           const expansionContent = await openRouterClient.generateInitialExpansion(
             finalTitle,
-            content
+            content,
+            locale
           );
 
           await prisma.expansion.create({

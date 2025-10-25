@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server';
 import { qdrantService } from '@/lib/qdrant';
 import { openRouterClient } from '@/lib/openrouter';
 import { z } from 'zod';
+import { getLocale } from '@/lib/i18n-server';
 
 const editIdeaSchema = z.object({
   title: z.string().min(1, 'El título es requerido'),
@@ -63,13 +64,15 @@ export async function PATCH(
     // Si se solicita, regenerar el análisis de éxito
     if (regenerateAnalysis && idea.status === 'COMPLETED') {
       try {
+        const locale = await getLocale();
         // Convertir expansions a formato string[] para analyzeSuccess
         const expansionTexts = idea.expansions.map((exp: { content: string }) => exp.content);
         
         const successAnalysisResult = await openRouterClient.analyzeSuccess(
           title,
           content,
-          expansionTexts
+          expansionTexts,
+          locale
         );
 
         updateData.successScore = successAnalysisResult.score;

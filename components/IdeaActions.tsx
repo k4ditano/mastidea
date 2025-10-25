@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Idea } from '@/types';
 import { FaEdit, FaRedo, FaCodeBranch, FaTrash, FaArchive } from 'react-icons/fa';
 
@@ -12,6 +13,7 @@ interface IdeaActionsProps {
 
 export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
   const router = useRouter();
+  const t = useTranslations('actions');
   const [loading, setLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showForkMenu, setShowForkMenu] = useState(false);
@@ -22,7 +24,7 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
   });
 
   const handleReopen = async () => {
-    if (!confirm('¿Reabrir esta idea para seguir trabajando en ella?')) return;
+    if (!confirm(t('confirmReopen'))) return;
 
     setLoading(true);
     try {
@@ -35,10 +37,10 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
       const data = await response.json();
       if (onUpdate) onUpdate(data.idea);
       router.refresh();
-      alert('✅ Idea reabierta. Puedes seguir expandiéndola.');
+      alert(t('reopenSuccess'));
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al reabrir la idea');
+      alert(t('reopenError'));
     } finally {
       setLoading(false);
     }
@@ -59,7 +61,7 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
       router.push(`/idea/${data.idea.id}`);
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al duplicar la idea');
+      alert(t('forkError'));
     } finally {
       setLoading(false);
     }
@@ -83,14 +85,14 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
       alert('✅ ' + data.message);
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al editar la idea');
+      alert(t('editError'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleArchive = async () => {
-    if (!confirm('¿Archivar esta idea?')) return;
+    if (!confirm(t('confirmArchive'))) return;
 
     setLoading(true);
     try {
@@ -105,14 +107,14 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
       router.push('/ideas');
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al archivar la idea');
+      alert(t('archiveError'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm('¿Mover esta idea a la papelera? Se eliminará definitivamente en 30 días.')) return;
+    if (!confirm(t('confirmDelete'))) return;
 
     setLoading(true);
     try {
@@ -125,7 +127,7 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
       router.push('/ideas');
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al eliminar la idea');
+      alert(t('deleteError'));
     } finally {
       setLoading(false);
     }
@@ -133,7 +135,7 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">Acciones</h3>
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('title')}</h3>
       
       <div className="flex flex-wrap gap-2">
         {/* Editar */}
@@ -143,7 +145,7 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
           className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
         >
           <FaEdit className="text-blue-600 flex-shrink-0" />
-          <span>Editar idea</span>
+          <span>{t('edit')}</span>
         </button>
 
         {/* Reabrir (solo si está completada) */}
@@ -154,7 +156,7 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
             className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
           >
             <FaRedo className="text-green-600 flex-shrink-0" />
-            <span>Reabrir idea</span>
+            <span>{t('reopen')}</span>
           </button>
         )}
 
@@ -166,7 +168,7 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
             className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
           >
             <FaCodeBranch className="text-purple-600 flex-shrink-0" />
-            <span>Duplicar idea</span>
+            <span>{t('fork')}</span>
           </button>
           
           {showForkMenu && (
@@ -179,8 +181,8 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
                 disabled={loading}
                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 rounded-t-lg"
               >
-                <div className="font-medium">Solo idea</div>
-                <div className="text-xs text-gray-500">Copia título y contenido</div>
+                <div className="font-medium">{t('forkIdeaOnly')}</div>
+                <div className="text-xs text-gray-500">{t('forkIdeaOnlyDesc')}</div>
               </button>
               <button
                 onClick={() => {
@@ -190,8 +192,8 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
                 disabled={loading}
                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 rounded-b-lg border-t"
               >
-                <div className="font-medium">Idea completa</div>
-                <div className="text-xs text-gray-500">Incluye todas las expansiones</div>
+                <div className="font-medium">{t('forkComplete')}</div>
+                <div className="text-xs text-gray-500">{t('forkCompleteDesc')}</div>
               </button>
             </div>
           )}
@@ -205,7 +207,7 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
             className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
           >
             <FaArchive className="text-yellow-600 flex-shrink-0" />
-            <span>Archivar</span>
+            <span>{t('archive')}</span>
           </button>
         )}
 
@@ -216,7 +218,7 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
           className="flex items-center space-x-2 px-3 py-2 text-sm text-red-600 bg-white border border-red-300 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
         >
           <FaTrash className="flex-shrink-0" />
-          <span>Mover a papelera</span>
+          <span>{t('delete')}</span>
         </button>
       </div>
 
@@ -225,12 +227,12 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Editar Idea</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('editTitle')}</h2>
               
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Título
+                    {t('editTitleLabel')}
                   </label>
                   <input
                     type="text"
@@ -242,7 +244,7 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contenido
+                    {t('editContentLabel')}
                   </label>
                   <textarea
                     value={editData.content}
@@ -261,7 +263,7 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
                       className="rounded border-gray-300"
                     />
                     <span className="text-sm text-gray-700">
-                      Regenerar análisis de éxito con IA
+                      {t('editRegenerateAnalysis')}
                     </span>
                   </label>
                 )}
@@ -273,14 +275,14 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
                   disabled={loading}
                   className="flex-1 px-6 py-3 bg-gray-700 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
-                  {loading ? 'Guardando...' : 'Guardar cambios'}
+                  {loading ? t('editSaving') : t('editSave')}
                 </button>
                 <button
                   onClick={() => setShowEditModal(false)}
                   disabled={loading}
                   className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  Cancelar
+                  {t('editCancel')}
                 </button>
               </div>
             </div>

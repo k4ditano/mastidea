@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { openRouterClient } from '@/lib/openrouter';
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
+import { getLocale } from '@/lib/i18n-server';
 
 const expandIdeaSchema = z.object({
   type: z.enum(['SUGGESTION', 'QUESTION', 'CONNECTION', 'USE_CASE', 'CHALLENGE']),
@@ -43,6 +44,7 @@ export async function POST(
     }
 
     // Generar expansión según el tipo
+    const locale = await getLocale();
     let expansionContent = '';
     const previousExpansions = idea.expansions.map((e: { content: string }) => e.content);
 
@@ -51,31 +53,36 @@ export async function POST(
         expansionContent = await openRouterClient.generateSuggestions(
           idea.title,
           idea.content,
-          previousExpansions
+          previousExpansions,
+          locale
         );
         break;
       case 'QUESTION':
         expansionContent = await openRouterClient.generateQuestions(
           idea.title,
-          idea.content
+          idea.content,
+          locale
         );
         break;
       case 'CONNECTION':
         expansionContent = await openRouterClient.generateConnections(
           idea.title,
-          idea.content
+          idea.content,
+          locale
         );
         break;
       case 'USE_CASE':
         expansionContent = await openRouterClient.generateUseCases(
           idea.title,
-          idea.content
+          idea.content,
+          locale
         );
         break;
       case 'CHALLENGE':
         expansionContent = await openRouterClient.generateChallenges(
           idea.title,
-          idea.content
+          idea.content,
+          locale
         );
         break;
     }

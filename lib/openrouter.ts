@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { type Locale } from './i18n-server';
+import { type Locale, getAIPrompts } from './i18n-server';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -187,18 +187,20 @@ Help me explore and expand it. What questions, connections or improvements would
   /**
    * Genera sugerencias de mejora
    */
-  async generateSuggestions(ideaTitle: string, ideaContent: string, previousExpansions: string[]): Promise<string> {
+  async generateSuggestions(ideaTitle: string, ideaContent: string, previousExpansions: string[], locale: Locale = 'es'): Promise<string> {
+    const prompts = getAIPrompts(locale);
     const context = previousExpansions.length > 0 
-      ? `\n\nExpansiones previas:\n${previousExpansions.join('\n\n')}`
+      ? (locale === 'es'
+          ? `\n\nExpansiones previas:\n${previousExpansions.join('\n\n')}`
+          : `\n\nPrevious expansions:\n${previousExpansions.join('\n\n')}`)
       : '';
 
-    const userPrompt = `Idea: ${ideaTitle}
-${ideaContent}${context}
-
-Sugiere 3-5 formas concretas de mejorar o complementar esta idea. Sé específico y práctico.`;
+    const userPrompt = locale === 'es'
+      ? `Idea: ${ideaTitle}\n${ideaContent}${context}\n\nSugiere 3-5 formas concretas de mejorar o complementar esta idea. Sé específico y práctico.`
+      : `Idea: ${ideaTitle}\n${ideaContent}${context}\n\nSuggest 3-5 concrete ways to improve or complement this idea. Be specific and practical.`;
 
     return this.chat([
-      { role: 'system', content: 'Eres Einstein modo ejecutivo. Busca ejemplos reales si es relevante (nombre + URL). Da 4-5 sugerencias PRÁCTICAS y CONCRETAS para mejorar la idea. Nada de poesía, directo al grano. Formato: texto plano, números, sin **, _, ###. Completa tus ideas.' },
+      { role: 'system', content: prompts.suggestions },
       { role: 'user', content: userPrompt },
     ]);
   }
@@ -206,14 +208,14 @@ Sugiere 3-5 formas concretas de mejorar o complementar esta idea. Sé específic
   /**
    * Genera preguntas provocadoras
    */
-  async generateQuestions(ideaTitle: string, ideaContent: string): Promise<string> {
-    const userPrompt = `Idea: ${ideaTitle}
-${ideaContent}
-
-Hazme preguntas profundas y provocadoras que me ayuden a pensar en esta idea desde ángulos completamente diferentes. Tipo "¿Y si...?", "¿Qué pasaría si...?", "¿Por qué no...?"`;
+  async generateQuestions(ideaTitle: string, ideaContent: string, locale: Locale = 'es'): Promise<string> {
+    const prompts = getAIPrompts(locale);
+    const userPrompt = locale === 'es'
+      ? `Idea: ${ideaTitle}\n${ideaContent}\n\nHazme preguntas profundas y provocadoras que me ayuden a pensar en esta idea desde ángulos completamente diferentes. Tipo "¿Y si...?", "¿Qué pasaría si...?", "¿Por qué no...?"`
+      : `Idea: ${ideaTitle}\n${ideaContent}\n\nAsk me deep and thought-provoking questions that help me think about this idea from completely different angles. Like "What if...?", "What would happen if...?", "Why not...?"`;
 
     return this.chat([
-      { role: 'system', content: 'Eres Einstein haciendo preguntas. 4-5 preguntas DIRECTAS y PRÁCTICAS sobre ejecución, mercado, costos, competencia. Tipo: "Cómo vas a...?", "Qué pasa si...?", "Has pensado en...?". Sin poesía. Formato: texto plano, números, sin **, _, ###.' },
+      { role: 'system', content: prompts.questions },
       { role: 'user', content: userPrompt },
     ]);
   }
@@ -221,14 +223,14 @@ Hazme preguntas profundas y provocadoras que me ayuden a pensar en esta idea des
   /**
    * Genera conexiones con otros conceptos
    */
-  async generateConnections(ideaTitle: string, ideaContent: string): Promise<string> {
-    const userPrompt = `Idea: ${ideaTitle}
-${ideaContent}
-
-¿Con qué otros campos, conceptos, tecnologías o ideas aparentemente no relacionadas podría conectar esto? Ayúdame a ver patrones y sinergias inusuales.`;
+  async generateConnections(ideaTitle: string, ideaContent: string, locale: Locale = 'es'): Promise<string> {
+    const prompts = getAIPrompts(locale);
+    const userPrompt = locale === 'es'
+      ? `Idea: ${ideaTitle}\n${ideaContent}\n\n¿Con qué otros campos, conceptos, tecnologías o ideas aparentemente no relacionadas podría conectar esto? Ayúdame a ver patrones y sinergias inusuales.`
+      : `Idea: ${ideaTitle}\n${ideaContent}\n\nWhat other fields, concepts, technologies, or seemingly unrelated ideas could this connect with? Help me see unusual patterns and synergies.`;
 
     return this.chat([
-      { role: 'system', content: 'Eres Einstein buscando conexiones. Busca proyectos/empresas reales que hagan cosas similares (nombre + URL). Encuentra 3-4 conexiones CONCRETAS con otras industrias o tecnologías. Sin metáforas largas. Formato: texto plano, sin **, _, ###. Desarrolla cada conexión.' },
+      { role: 'system', content: prompts.connections },
       { role: 'user', content: userPrompt },
     ]);
   }
@@ -236,14 +238,14 @@ ${ideaContent}
   /**
    * Genera casos de uso prácticos
    */
-  async generateUseCases(ideaTitle: string, ideaContent: string): Promise<string> {
-    const userPrompt = `Idea: ${ideaTitle}
-${ideaContent}
-
-Dame 5 casos de uso concretos y diversos para esta idea. Piensa en diferentes industrias, contextos y escalas.`;
+  async generateUseCases(ideaTitle: string, ideaContent: string, locale: Locale = 'es'): Promise<string> {
+    const prompts = getAIPrompts(locale);
+    const userPrompt = locale === 'es'
+      ? `Idea: ${ideaTitle}\n${ideaContent}\n\nDame 5 casos de uso concretos y diversos para esta idea. Piensa en diferentes industrias, contextos y escalas.`
+      : `Idea: ${ideaTitle}\n${ideaContent}\n\nGive me 5 concrete and diverse use cases for this idea. Think about different industries, contexts, and scales.`;
 
     return this.chat([
-      { role: 'system', content: 'Eres Einstein listando usos prácticos. Busca empresas reales que usen ideas similares (nombre + URL). Da 5 casos de uso CONCRETOS y ESPECÍFICOS. Desde lo simple hasta lo ambicioso. Sin poesía. Formato: texto plano, números, sin **, _, ###.' },
+      { role: 'system', content: prompts.useCases },
       { role: 'user', content: userPrompt },
     ]);
   }
@@ -251,14 +253,14 @@ Dame 5 casos de uso concretos y diversos para esta idea. Piensa en diferentes in
   /**
    * Genera análisis de desafíos potenciales
    */
-  async generateChallenges(ideaTitle: string, ideaContent: string): Promise<string> {
-    const userPrompt = `Idea: ${ideaTitle}
-${ideaContent}
-
-Analiza los posibles desafíos, obstáculos o problemas que podría enfrentar esta idea. Sé constructivo y sugiere cómo abordar cada desafío.`;
+  async generateChallenges(ideaTitle: string, ideaContent: string, locale: Locale = 'es'): Promise<string> {
+    const prompts = getAIPrompts(locale);
+    const userPrompt = locale === 'es'
+      ? `Idea: ${ideaTitle}\n${ideaContent}\n\nAnaliza los posibles desafíos, obstáculos o problemas que podría enfrentar esta idea. Sé constructivo y sugiere cómo abordar cada desafío.`
+      : `Idea: ${ideaTitle}\n${ideaContent}\n\nAnalyze the possible challenges, obstacles, or problems this idea might face. Be constructive and suggest how to address each challenge.`;
 
     return this.chat([
-      { role: 'system', content: 'Eres Einstein analizando obstáculos. Identifica 3-4 desafíos REALES (costos, competencia, regulaciones, técnicos). Para cada uno sugiere cómo superarlo de forma PRÁCTICA. Sin poesía. Formato: texto plano, números, sin **, _, ###.' },
+      { role: 'system', content: prompts.challenges },
       { role: 'user', content: userPrompt },
     ]);
   }
@@ -267,12 +269,15 @@ Analiza los posibles desafíos, obstáculos o problemas que podría enfrentar es
    * Genera tags para una idea
    * Reutiliza tags existentes cuando son relevantes
    */
-  async generateTags(title: string, content: string, existingTags: string[]): Promise<string[]> {
+  async generateTags(title: string, content: string, existingTags: string[], locale: Locale = 'es'): Promise<string[]> {
     const existingTagsList = existingTags.length > 0 
-      ? `\n\nTags ya existentes que DEBES reutilizar si son relevantes:\n${existingTags.join(', ')}`
+      ? (locale === 'es' 
+          ? `\n\nTags ya existentes que DEBES reutilizar si son relevantes:\n${existingTags.join(', ')}`
+          : `\n\nExisting tags that you MUST reuse if relevant:\n${existingTags.join(', ')}`)
       : '';
 
-    const userPrompt = `Analiza esta idea y genera 3-5 tags (etiquetas) que la describan.
+    const userPrompt = locale === 'es'
+      ? `Analiza esta idea y genera 3-5 tags (etiquetas) que la describan.
 
 IDEA:
 Título: ${title}
@@ -288,10 +293,31 @@ REGLAS IMPORTANTES:
 7. Categorías útiles: tecnología, industria, tipo de solución, público objetivo, etc
 
 RESPONDE SOLO CON LOS TAGS SEPARADOS POR COMAS. Ejemplo:
-inteligencia artificial, educación, mobile, b2c, sostenibilidad`;
+inteligencia artificial, educación, mobile, b2c, sostenibilidad`
+      : `Analyze this idea and generate 3-5 tags that describe it.
+
+IDEA:
+Title: ${title}
+Content: ${content}${existingTagsList}
+
+IMPORTANT RULES:
+1. If there are relevant existing tags, REUSE THEM (exact same name)
+2. Only create new tags if really necessary
+3. Short tags (1-2 words maximum)
+4. In English
+5. Lowercase
+6. No special characters (#, @, etc)
+7. Useful categories: technology, industry, solution type, target audience, etc
+
+RESPOND ONLY WITH TAGS SEPARATED BY COMMAS. Example:
+artificial intelligence, education, mobile, b2c, sustainability`;
+
+    const systemPrompt = locale === 'es'
+      ? 'Eres un experto en categorización. Genera tags relevantes y reutiliza los existentes cuando sea apropiado.'
+      : 'You are an expert in categorization. Generate relevant tags and reuse existing ones when appropriate.';
 
     const response = await this.chat([
-      { role: 'system', content: 'Eres un experto en categorización. Genera tags relevantes y reutiliza los existentes cuando sea apropiado.' },
+      { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt },
     ]);
 
@@ -311,13 +337,17 @@ inteligencia artificial, educación, mobile, b2c, sostenibilidad`;
   async analyzeSuccess(
     title: string, 
     content: string, 
-    expansions: string[]
+    expansions: string[],
+    locale: Locale = 'es'
   ): Promise<{ score: number; analysis: string }> {
     const expansionsText = expansions.length > 0
-      ? `\n\nEXPANSIONES Y ANÁLISIS PREVIOS:\n${expansions.join('\n\n---\n\n')}`
+      ? (locale === 'es' 
+          ? `\n\nEXPANSIONES Y ANÁLISIS PREVIOS:\n${expansions.join('\n\n---\n\n')}`
+          : `\n\nPREVIOUS EXPANSIONS AND ANALYSIS:\n${expansions.join('\n\n---\n\n')}`)
       : '';
 
-    const userPrompt = `Analiza el potencial de éxito de esta idea considerando todo su desarrollo:
+    const userPrompt = locale === 'es'
+      ? `Analiza el potencial de éxito de esta idea considerando todo su desarrollo:
 
 IDEA ORIGINAL:
 Título: ${title}
@@ -340,22 +370,49 @@ ANÁLISIS:
 - Recomendaciones para maximizar el éxito
 - Próximos pasos sugeridos
 
-Sé honesto pero constructivo. Si la idea tiene potencial, resáltalo. Si tiene problemas, señálalos con soluciones.`;
+Sé honesto pero constructivo. Si la idea tiene potencial, resáltalo. Si tiene problemas, señálalos con soluciones.`
+      : `Analyze the success potential of this idea considering all its development:
+
+ORIGINAL IDEA:
+Title: ${title}
+Content: ${content}${expansionsText}
+
+EVALUATION CRITERIA:
+1. Technical feasibility (is it feasible to build?)
+2. Market demand (are there people who need it?)
+3. Differentiation (what makes it unique?)
+4. Scalability (can it grow?)
+5. Required resources (is what it requires reasonable?)
+
+RESPONSE FORMAT:
+SCORE: [number from 1 to 10]
+
+ANALYSIS:
+[Your detailed analysis in 3-4 paragraphs covering:]
+- Main strengths of the idea
+- Most important challenges and risks
+- Recommendations to maximize success
+- Suggested next steps
+
+Be honest but constructive. If the idea has potential, highlight it. If it has problems, point them out with solutions.`;
+
+    const systemPrompt = locale === 'es'
+      ? 'Eres Einstein evaluando ideas con rigor científico. Das puntuaciones honestas basadas en datos y lógica. Eres directo pero constructivo. Tu objetivo es ayudar a mejorar ideas, no solo criticarlas.'
+      : 'You are Einstein evaluating ideas with scientific rigor. You give honest scores based on data and logic. You are direct but constructive. Your goal is to help improve ideas, not just criticize them.';
 
     const response = await this.chat([
-      { 
-        role: 'system', 
-        content: 'Eres Einstein evaluando ideas con rigor científico. Das puntuaciones honestas basadas en datos y lógica. Eres directo pero constructivo. Tu objetivo es ayudar a mejorar ideas, no solo criticarlas.' 
-      },
+      { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt },
     ]);
 
     // Parsear respuesta para extraer score y análisis
-    const scoreMatch = response.match(/PUNTUACIÓN:\s*(\d+)/i);
+    const scorePattern = locale === 'es' ? /PUNTUACIÓN:\s*(\d+)/i : /SCORE:\s*(\d+)/i;
+    const scoreMatch = response.match(scorePattern);
     const score = scoreMatch ? Math.min(10, Math.max(1, parseInt(scoreMatch[1]))) : 5;
     
-    // Extraer el análisis (todo después de "ANÁLISIS:")
-    const analysisMatch = response.match(/ANÁLISIS:\s*([\s\S]+)/i);
+    // Extraer el análisis (todo después de "ANÁLISIS:" o "ANALYSIS:")
+    const analysisPattern = locale === 'es' ? /ANÁLISIS:\s*([\s\S]+)/i : /ANALYSIS:\s*([\s\S]+)/i;
+    const analysisMatch = response.match(analysisPattern);
     const analysis = analysisMatch ? analysisMatch[1].trim() : response;
 
     return { score, analysis };

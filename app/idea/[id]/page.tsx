@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Loading from '@/components/Loading';
 import VoiceRecorder from '@/components/VoiceRecorder';
@@ -12,11 +13,25 @@ import IdeaActions from '@/components/IdeaActions';
 import { Idea, ExpansionType, EXPANSION_TYPE_LABELS } from '@/types';
 import { FaArrowLeft, FaTrash, FaCheckCircle } from 'react-icons/fa';
 import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
+
+// Helper to get current locale from cookie
+const getCurrentLocale = (): 'es' | 'en' => {
+  if (typeof document === 'undefined') return 'es';
+  const cookie = document.cookie.split('; ').find(row => row.startsWith('locale='));
+  return (cookie?.split('=')[1] as 'es' | 'en') || 'es';
+};
+
+const getDateLocale = (locale: 'es' | 'en') => {
+  return locale === 'es' ? es : enUS;
+};
 
 export default function IdeaPage() {
   const params = useParams();
   const router = useRouter();
+  const t = useTranslations('idea');
+  const locale = getCurrentLocale();
+  const dateLocale = getDateLocale(locale);
   const [idea, setIdea] = useState<Idea | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanding, setExpanding] = useState(false);
@@ -39,7 +54,7 @@ export default function IdeaPage() {
       setIdea(data);
     } catch (error) {
       console.error('Error loading idea:', error);
-      alert('Error al cargar la idea');
+      alert(t('errorLoading'));
       router.push('/');
     } finally {
       setLoading(false);
@@ -98,7 +113,7 @@ export default function IdeaPage() {
       await loadIdea();
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al expandir la idea. Por favor intenta de nuevo.');
+      alert(t('errorExpanding'));
     } finally {
       setExpanding(false);
     }
@@ -120,14 +135,14 @@ export default function IdeaPage() {
       await loadIdea();
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al responder. Por favor intenta de nuevo.');
+      alert(t('errorReplying'));
     } finally {
       setReplyingToExpansion(null);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta idea?')) {
+    if (!confirm(t('confirmDelete'))) {
       return;
     }
 
@@ -143,7 +158,7 @@ export default function IdeaPage() {
       router.push('/ideas');
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al eliminar la idea');
+      alert(t('errorDeleting'));
     }
   };
 
@@ -153,7 +168,7 @@ export default function IdeaPage() {
       return;
     }
 
-    if (!confirm('¿Cerrar esta idea y generar resumen ejecutivo? No podrás seguir desarrollándola.')) {
+    if (!confirm(t('confirmComplete'))) {
       return;
     }
 
@@ -168,10 +183,10 @@ export default function IdeaPage() {
       }
 
       await loadIdea();
-      alert('✅ Idea completada con resumen ejecutivo generado');
+      alert(t('completeSuccess'));
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al completar la idea');
+      alert(t('errorCompleting'));
     } finally {
       setCompleting(false);
     }
@@ -201,10 +216,10 @@ export default function IdeaPage() {
           </div>
           <div>
             <p className="text-sm font-bold text-gray-900">
-              {completing ? 'MastIdea está cerrando tu idea y actualizando tags...' : aiProcessing ? '🤖 IA procesando en segundo plano (título, tags, expansión)...' : 'MastIdea pensando...'}
+              {completing ? t('aiCompleting') : aiProcessing ? t('aiProcessingBackground') : t('aiThinking')}
             </p>
             {aiProcessing && (
-              <p className="text-xs text-gray-600 mt-1">La página se actualizará automáticamente</p>
+              <p className="text-xs text-gray-600 mt-1">{t('autoUpdate')}</p>
             )}
           </div>
         </div>
@@ -218,7 +233,7 @@ export default function IdeaPage() {
             className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 transition-colors font-medium"
           >
             <FaArrowLeft className="text-lg" />
-            <span className="hidden sm:inline">Volver</span>
+            <span className="hidden sm:inline">{t('back')}</span>
           </button>
           
           <div className="flex items-center space-x-2">
@@ -229,7 +244,7 @@ export default function IdeaPage() {
                 className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors disabled:opacity-50 text-sm font-medium shadow-md"
               >
                 <FaCheckCircle />
-                <span>{completing ? 'Cerrando...' : 'Cerrar'}</span>
+                <span>{completing ? t('closing') : t('close')}</span>
               </button>
             )}
             <button
@@ -246,8 +261,8 @@ export default function IdeaPage() {
           <div className="mb-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4 flex items-center space-x-3">
             <FaCheckCircle className="text-green-600 text-2xl" />
             <div>
-              <p className="font-bold text-green-900">Idea completada</p>
-              <p className="text-sm text-green-700">Esta idea ya tiene su resumen ejecutivo. Revisa el resumen al final.</p>
+              <p className="font-bold text-green-900">{t('completed')}</p>
+              <p className="text-sm text-green-700">{t('completedDesc')}</p>
             </div>
           </div>
         )}
@@ -269,9 +284,9 @@ export default function IdeaPage() {
             <div className="flex justify-center mb-6">
               <div className="bg-gradient-to-r from-einstein-50 to-purple-50 rounded-2xl px-6 py-4 border border-einstein-200 max-w-md text-center">
                 <p className="text-sm text-gray-700">
-                  <span className="font-semibold">💭 MastIdea está lista para ayudarte.</span>
+                  <span className="font-semibold">{t('welcomeMessage')}</span>
                   <br />
-                  <span className="text-xs text-gray-600">Elige una acción o escribe tu pregunta</span>
+                  <span className="text-xs text-gray-600">{t('welcomeAction')}</span>
                 </p>
               </div>
             </div>
@@ -283,10 +298,10 @@ export default function IdeaPage() {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
                   <span className="text-xl">💡</span>
-                  <span className="font-bold text-sm text-gray-600">Tu idea</span>
+                  <span className="font-bold text-sm text-gray-600">{t('yourIdea')}</span>
                 </div>
                 <span className="text-xs text-gray-400">
-                  {new Date(idea.createdAt).toLocaleDateString('es-ES', { 
+                  {new Date(idea.createdAt).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', { 
                     day: 'numeric', 
                     month: 'short',
                     year: 'numeric',
@@ -355,7 +370,7 @@ export default function IdeaPage() {
                       {EXPANSION_TYPE_LABELS[expansion.type].label}
                     </span>
                     <span className="text-xs text-gray-400 ml-auto">
-                      {formatDistanceToNow(new Date(expansion.createdAt), { addSuffix: true, locale: es })}
+                      {formatDistanceToNow(new Date(expansion.createdAt), { addSuffix: true, locale: dateLocale })}
                     </span>
                   </div>
                   <div className="text-sm text-gray-700 leading-relaxed space-y-3">
@@ -386,18 +401,18 @@ export default function IdeaPage() {
                 <div className="flex justify-center mb-3">
                   <div className="inline-flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-full border border-gray-200">
                     <span className="text-sm">🧠</span>
-                    <span className="text-xs text-gray-600 font-medium">Sigue desarrollando tu idea con MastIdea</span>
+                    <span className="text-xs text-gray-600 font-medium">{t('developIdea')}</span>
                   </div>
                 </div>
               
               {/* Quick action badges */}
               <div className="flex justify-center flex-wrap gap-2 mb-3">
                 {[
-                  { type: 'SUGGESTION' as ExpansionType, emoji: '💡', label: 'Mejoras' },
-                  { type: 'QUESTION' as ExpansionType, emoji: '❓', label: 'Preguntas' },
-                  { type: 'CONNECTION' as ExpansionType, emoji: '🔗', label: 'Conexiones' },
-                  { type: 'USE_CASE' as ExpansionType, emoji: '🎯', label: 'Usos' },
-                  { type: 'CHALLENGE' as ExpansionType, emoji: '⚡', label: 'Desafíos' },
+                  { type: 'SUGGESTION' as ExpansionType, emoji: '💡', label: t('suggestions') },
+                  { type: 'QUESTION' as ExpansionType, emoji: '❓', label: t('questions') },
+                  { type: 'CONNECTION' as ExpansionType, emoji: '🔗', label: t('connections') },
+                  { type: 'USE_CASE' as ExpansionType, emoji: '🎯', label: t('useCases') },
+                  { type: 'CHALLENGE' as ExpansionType, emoji: '⚡', label: t('challenges') },
                 ].map((action) => (
                   <button
                     key={action.type}
@@ -428,7 +443,7 @@ export default function IdeaPage() {
                     type="text"
                     value={customMessage}
                     onChange={(e) => setCustomMessage(e.target.value)}
-                    placeholder="Escribe tu pregunta o comentario..."
+                    placeholder={t('customMessagePlaceholder')}
                     disabled={expanding || replyingToExpansion !== null}
                     className="flex-1 px-5 py-4 text-base text-gray-900 bg-white border-2 border-gray-300 rounded-2xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 disabled:opacity-50 disabled:bg-gray-100 shadow-sm placeholder:text-gray-400 transition-all"
                   />

@@ -1,10 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { FaArrowLeft, FaTag, FaLightbulb } from 'react-icons/fa';
 import Loading from '@/components/Loading';
 import { Tag } from '@/types';
+
+// Helper to get current locale from cookie
+const getCurrentLocale = (): 'es' | 'en' => {
+  if (typeof document === 'undefined') return 'es';
+  const cookie = document.cookie.split('; ').find(row => row.startsWith('locale='));
+  return (cookie?.split('=')[1] as 'es' | 'en') || 'es';
+};
 
 interface TagWithCount extends Tag {
   _count: {
@@ -13,6 +21,8 @@ interface TagWithCount extends Tag {
 }
 
 export default function TagsPage() {
+  const t = useTranslations('tags');
+  const locale = getCurrentLocale();
   const [tags, setTags] = useState<TagWithCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'name' | 'count'>('count');
@@ -54,18 +64,18 @@ export default function TagsPage() {
             className="text-gray-600 hover:text-gray-800 transition-colors flex items-center space-x-2 mb-4"
           >
             <FaArrowLeft />
-            <span>Volver</span>
+            <span>{t('back')}</span>
           </Link>
           
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <FaTag className="text-3xl text-purple-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Todos los Tags</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
             </div>
             
             {/* Sort buttons */}
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Ordenar:</span>
+              <span className="text-sm text-gray-600">{t('sortBy')}:</span>
               <button
                 onClick={() => setSortBy('count')}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
@@ -74,7 +84,7 @@ export default function TagsPage() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Por uso
+                {t('sortByUsage')}
               </button>
               <button
                 onClick={() => setSortBy('name')}
@@ -84,13 +94,13 @@ export default function TagsPage() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                A-Z
+                {t('sortByName')}
               </button>
             </div>
           </div>
           
           <p className="text-gray-600 text-sm">
-            Explora y filtra tus ideas por tags. Haz click en cualquier tag para ver las ideas relacionadas.
+            {t('description')}
           </p>
         </div>
 
@@ -98,19 +108,19 @@ export default function TagsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow-md p-4">
             <div className="text-2xl font-bold text-purple-600">{tags.length}</div>
-            <div className="text-sm text-gray-600">Tags totales</div>
+            <div className="text-sm text-gray-600">{t('totalTags')}</div>
           </div>
           <div className="bg-white rounded-lg shadow-md p-4">
             <div className="text-2xl font-bold text-blue-600">
               {tags.reduce((sum, tag) => sum + tag._count.ideas, 0)}
             </div>
-            <div className="text-sm text-gray-600">Conexiones totales</div>
+            <div className="text-sm text-gray-600">{t('totalConnections')}</div>
           </div>
           <div className="bg-white rounded-lg shadow-md p-4">
             <div className="text-2xl font-bold text-green-600">
               {tags.length > 0 ? (tags.reduce((sum, tag) => sum + tag._count.ideas, 0) / tags.length).toFixed(1) : 0}
             </div>
-            <div className="text-sm text-gray-600">Promedio por tag</div>
+            <div className="text-sm text-gray-600">{t('averagePerTag')}</div>
           </div>
         </div>
 
@@ -144,12 +154,12 @@ export default function TagsPage() {
                 </h3>
                 
                 <p className="text-xs text-gray-500">
-                  {tag._count.ideas === 1 ? '1 idea' : `${tag._count.ideas} ideas`}
+                  {tag._count.ideas === 1 ? t('oneIdea') : t('multipleIdeas', { count: tag._count.ideas })}
                 </p>
                 
                 <div className="mt-3 pt-3 border-t border-gray-200">
                   <div className="text-xs text-gray-400">
-                    Creado {new Date(tag.createdAt).toLocaleDateString('es-ES', {
+                    {t('created')} {new Date(tag.createdAt).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
                       day: 'numeric',
                       month: 'short',
                       year: 'numeric'
@@ -163,16 +173,16 @@ export default function TagsPage() {
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
             <FaTag className="text-6xl text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              No hay tags todavía
+              {t('noTags')}
             </h3>
             <p className="text-gray-500 mb-6">
-              Crea tu primera idea y la IA generará tags automáticamente
+              {t('noTagsDesc')}
             </p>
             <Link
               href="/"
               className="inline-block bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors"
             >
-              Crear nueva idea
+              {t('createNewIdea')}
             </Link>
           </div>
         )}

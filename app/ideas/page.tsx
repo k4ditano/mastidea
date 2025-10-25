@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import IdeaCard from '@/components/IdeaCard';
 import Loading from '@/components/Loading';
@@ -10,6 +11,7 @@ import { FaBrain, FaSearch } from 'react-icons/fa';
 
 function IdeasContent() {
   const searchParams = useSearchParams();
+  const t = useTranslations('ideas');
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -110,7 +112,7 @@ function IdeasContent() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4 flex items-center">
             <FaBrain className="text-einstein-600 mr-3" />
-            Mi Universo de Ideas
+            {t('title')}
           </h1>
           
           {/* Stats */}
@@ -118,15 +120,15 @@ function IdeasContent() {
             <div className="flex flex-wrap gap-4 mb-6">
               <div className="bg-white rounded-lg px-4 py-2 border border-gray-200">
                 <span className="text-2xl font-bold text-einstein-600">{ideas.length}</span>
-                <span className="text-gray-600 ml-2">ideas</span>
+                <span className="text-gray-600 ml-2">{t('statsIdeas')}</span>
               </div>
               <div className="bg-white rounded-lg px-4 py-2 border border-gray-200">
                 <span className="text-2xl font-bold text-purple-600">{totalExpansions}</span>
-                <span className="text-gray-600 ml-2">expansiones</span>
+                <span className="text-gray-600 ml-2">{t('statsExpansions')}</span>
               </div>
               <div className="bg-white rounded-lg px-4 py-2 border border-green-300 bg-green-50">
                 <span className="text-2xl font-bold text-green-600">{completedCount}</span>
-                <span className="text-gray-600 ml-2">completadas</span>
+                <span className="text-gray-600 ml-2">{t('statsCompleted')}</span>
               </div>
             </div>
           )}
@@ -139,7 +141,7 @@ function IdeasContent() {
                 className="inline-flex items-center space-x-2 px-4 py-2 bg-white border-2 border-gray-300 text-gray-700 font-medium text-sm rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all shadow-sm"
               >
                 <span>🎯</span>
-                <span>Evaluar ideas</span>
+                <span>{t('evaluate')}</span>
               </Link>
               
               <Link
@@ -147,7 +149,7 @@ function IdeasContent() {
                 className="inline-flex items-center space-x-2 px-4 py-2 bg-white border-2 border-gray-300 text-gray-700 font-medium text-sm rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all shadow-sm"
               >
                 <span>📦</span>
-                <span>Ideas archivadas</span>
+                <span>{t('archived')}</span>
               </Link>
             </div>
           )}
@@ -164,7 +166,7 @@ function IdeasContent() {
                     : 'px-4 py-2 rounded-lg font-medium transition-colors bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 select-none'
                 }
               >
-                Todas
+                {t('filterAll')}
               </button>
               <button
                 onClick={() => setFilter('active')}
@@ -175,7 +177,7 @@ function IdeasContent() {
                     : 'px-4 py-2 rounded-lg font-medium transition-colors bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 select-none'
                 }
               >
-                Activas
+                {t('filterActive')}
               </button>
               <button
                 onClick={() => setFilter('completed')}
@@ -186,14 +188,14 @@ function IdeasContent() {
                     : 'px-4 py-2 rounded-lg font-medium transition-colors bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 select-none'
                 }
               >
-                Completadas
+                {t('filterCompleted')}
               </button>
             </div>
 
             {/* Tags filter */}
             {allTags.length > 0 && (
               <div className="flex flex-wrap gap-2 items-center ml-2 border-l border-gray-300 pl-4">
-                <span className="text-sm text-gray-500 font-medium">Tags:</span>
+                <span className="text-sm text-gray-500 font-medium">{t('tags')}:</span>
                 {allTags.slice(0, 8).map(tag => (
                   <button
                     key={tag.id}
@@ -220,7 +222,7 @@ function IdeasContent() {
                     onClick={() => setSelectedTag(null)}
                     className="text-xs text-gray-500 hover:text-gray-700 underline"
                   >
-                    Limpiar
+                    {t('clearTag')}
                   </button>
                 )}
               </div>
@@ -237,7 +239,7 @@ function IdeasContent() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  placeholder="Busca ideas similares... (búsqueda semántica con IA)"
+                  placeholder={t('searchPlaceholder')}
                   className="
                     w-full pl-12 pr-4 py-3 rounded-lg
                     border-2 border-gray-200 focus:border-einstein-500 focus:ring-4 focus:ring-einstein-100
@@ -256,7 +258,7 @@ function IdeasContent() {
                   transition-colors
                 "
               >
-                {searching ? 'Buscando...' : 'Buscar'}
+                {searching ? t('searching') : t('search')}
               </button>
               {searchResults.length > 0 && (
                 <button
@@ -266,7 +268,7 @@ function IdeasContent() {
                   }}
                   className="px-6 py-3 rounded-lg border-2 border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                 >
-                  Limpiar
+                  {t('clear')}
                 </button>
               )}
             </div>
@@ -274,7 +276,7 @@ function IdeasContent() {
 
           {searchResults.length > 0 && (
             <p className="mt-4 text-gray-600">
-              Se encontraron <span className="font-semibold">{searchResults.length}</span> ideas similares
+              {t('searchResults', { count: searchResults.length })}
             </p>
           )}
         </div>
@@ -286,12 +288,12 @@ function IdeasContent() {
           <div className="text-center py-16">
             <div className="text-6xl mb-4">💡</div>
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-              {searchQuery ? 'No se encontraron ideas' : 'Aún no tienes ideas'}
+              {searchQuery ? t('noResults') : t('noIdeas')}
             </h2>
             <p className="text-gray-600 mb-6">
               {searchQuery 
-                ? 'Intenta con otros términos de búsqueda' 
-                : 'Empieza capturando tu primera idea en la página de inicio'
+                ? t('noResultsDesc') 
+                : t('noIdeasDesc')
               }
             </p>
             {!searchQuery && (
@@ -299,7 +301,7 @@ function IdeasContent() {
                 href="/"
                 className="inline-block px-6 py-3 bg-einstein-600 text-white font-medium rounded-lg hover:bg-einstein-700 transition-colors"
               >
-                Crear mi primera idea
+                {t('createFirst')}
               </Link>
             )}
           </div>
