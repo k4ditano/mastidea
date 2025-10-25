@@ -131,6 +131,27 @@ function IdeasContent() {
             </div>
           )}
 
+          {/* Evaluate Button */}
+          {!loading && ideas.length > 0 && (
+            <div className="mb-6 flex flex-wrap gap-2">
+              <Link
+                href="/ideas/evaluate"
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-white border-2 border-gray-300 text-gray-700 font-medium text-sm rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all shadow-sm"
+              >
+                <span>🎯</span>
+                <span>Evaluar ideas</span>
+              </Link>
+              
+              <Link
+                href="/ideas/archived"
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-white border-2 border-gray-300 text-gray-700 font-medium text-sm rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all shadow-sm"
+              >
+                <span>📦</span>
+                <span>Ideas archivadas</span>
+              </Link>
+            </div>
+          )}
+
           {/* Filter tabs */}
           <div className="flex flex-wrap gap-2 mb-4">
             <div className="flex space-x-2">

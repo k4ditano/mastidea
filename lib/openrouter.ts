@@ -40,42 +40,63 @@ export class OpenRouterClient {
   }
 
   /**
-   * Genera una respuesta de chat usando OpenRouter
+   * Genera una respuesta de chat usando OpenRouter con reintentos automáticos
    */
-  async chat(messages: ChatMessage[]): Promise<string> {
-    try {
-      const response = await axios.post<OpenRouterResponse>(
-        OPENROUTER_API_URL,
-        {
-          model: this.model,
-          messages,
-          temperature: 0.7,
-          max_tokens: 2000, // Aumentado para respuestas completas
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-            'X-Title': process.env.NEXT_PUBLIC_APP_NAME || 'MastIdea',
-            'Content-Type': 'application/json',
+  async chat(messages: ChatMessage[], retries = 2): Promise<string> {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const response = await axios.post<OpenRouterResponse>(
+          OPENROUTER_API_URL,
+          {
+            model: this.model,
+            messages,
+            temperature: 0.7,
+            max_tokens: 2000,
           },
-        }
-      );
+          {
+            headers: {
+              'Authorization': `Bearer ${this.apiKey}`,
+              'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+              'X-Title': process.env.NEXT_PUBLIC_APP_NAME || 'MastIdea',
+              'Content-Type': 'application/json',
+            },
+          }
+        );
 
-      return response.data.choices[0]?.message?.content || '';
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Error en OpenRouter API:', {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-          message: error.message,
-        });
-      } else {
-        console.error('Error en OpenRouter API:', error);
+        return response.data.choices[0]?.message?.content || '';
+      } catch (error) {
+        const isLastAttempt = attempt === retries;
+        
+        if (axios.isAxiosError(error)) {
+          const status = error.response?.status;
+          const isServerError = status && status >= 500;
+          
+          console.error(`Error en OpenRouter API (intento ${attempt + 1}/${retries + 1}):`, {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            message: error.message,
+          });
+          
+          // Si es error del servidor (5xx) y no es el último intento, reintentar
+          if (isServerError && !isLastAttempt) {
+            const waitTime = Math.pow(2, attempt) * 1000; // Backoff exponencial: 1s, 2s
+            console.log(`⏳ Reintentando en ${waitTime}ms...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            continue;
+          }
+        } else {
+          console.error('Error en OpenRouter API:', error);
+        }
+        
+        // Si llegamos aquí, o no es error de servidor o ya agotamos reintentos
+        if (isLastAttempt) {
+          throw new Error('Error al generar respuesta de IA. El servicio puede estar temporalmente no disponible.');
+        }
       }
-      throw new Error('Error al generar respuesta de IA');
     }
+    
+    throw new Error('Error al generar respuesta de IA');
   }
 
   /**
@@ -243,6 +264,63 @@ inteligencia artificial, educación, mobile, b2c, sostenibilidad`;
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0 && tag.length < 30)
       .slice(0, 5); // Máximo 5 tags
+  }
+
+  /**
+   * Analiza el potencial de éxito de una idea
+   * Retorna: { score: 1-10, analysis: string }
+   */
+  async analyzeSuccess(
+    title: string, 
+    content: string, 
+    expansions: string[]
+  ): Promise<{ score: number; analysis: string }> {
+    const expansionsText = expansions.length > 0
+      ? `\n\nEXPANSIONES Y ANÁLISIS PREVIOS:\n${expansions.join('\n\n---\n\n')}`
+      : '';
+
+    const userPrompt = `Analiza el potencial de éxito de esta idea considerando todo su desarrollo:
+
+IDEA ORIGINAL:
+Título: ${title}
+Contenido: ${content}${expansionsText}
+
+CRITERIOS DE EVALUACIÓN:
+1. Viabilidad técnica (¿es factible construirlo?)
+2. Demanda de mercado (¿hay gente que lo necesite?)
+3. Diferenciación (¿qué la hace única?)
+4. Escalabilidad (¿puede crecer?)
+5. Recursos necesarios (¿es razonable lo que requiere?)
+
+FORMATO DE RESPUESTA:
+PUNTUACIÓN: [número del 1 al 10]
+
+ANÁLISIS:
+[Tu análisis detallado en 3-4 párrafos cubriendo:]
+- Fortalezas principales de la idea
+- Desafíos y riesgos más importantes
+- Recomendaciones para maximizar el éxito
+- Próximos pasos sugeridos
+
+Sé honesto pero constructivo. Si la idea tiene potencial, resáltalo. Si tiene problemas, señálalos con soluciones.`;
+
+    const response = await this.chat([
+      { 
+        role: 'system', 
+        content: 'Eres Einstein evaluando ideas con rigor científico. Das puntuaciones honestas basadas en datos y lógica. Eres directo pero constructivo. Tu objetivo es ayudar a mejorar ideas, no solo criticarlas.' 
+      },
+      { role: 'user', content: userPrompt },
+    ]);
+
+    // Parsear respuesta para extraer score y análisis
+    const scoreMatch = response.match(/PUNTUACIÓN:\s*(\d+)/i);
+    const score = scoreMatch ? Math.min(10, Math.max(1, parseInt(scoreMatch[1]))) : 5;
+    
+    // Extraer el análisis (todo después de "ANÁLISIS:")
+    const analysisMatch = response.match(/ANÁLISIS:\s*([\s\S]+)/i);
+    const analysis = analysisMatch ? analysisMatch[1].trim() : response;
+
+    return { score, analysis };
   }
 }
 

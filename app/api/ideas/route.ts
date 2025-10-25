@@ -46,107 +46,21 @@ export async function POST(request: NextRequest) {
     let { title } = createIdeaSchema.parse(body);
     const { content } = createIdeaSchema.parse(body);
     
-    // Si no hay título, generar uno con IA
+    // Si no hay título, usar el inicio del contenido temporalmente
     if (!title || !title.trim()) {
-      try {
-        const generatedTitle = await openRouterClient.chat([
-          { role: 'system', content: 'Eres Einstein creando títulos brillantes. Crea un título corto (máximo 8 palabras), creativo e inspirador que capture la esencia. Sin comillas, sin puntos. Como si fuera el nombre de un descubrimiento fascinante. Solo el título, nada más.' },
-          { role: 'user', content: `Idea: ${content}` }
-        ]);
-        title = generatedTitle.trim().substring(0, 100);
-      } catch (error) {
-        console.error('Error generando título:', error);
-        title = content.substring(0, 50) + '...';
-      }
+      title = content.substring(0, 50) + (content.length > 50 ? '...' : '');
     }
 
-    // Crear la idea en la base de datos
+    // Crear la idea INMEDIATAMENTE en la base de datos
     const idea = await prisma.idea.create({
       data: {
         userId,
         title,
         content,
+        aiProcessingStatus: 'PENDING', // IA trabajando en segundo plano
       },
-    });
-
-    // Generar tags con IA (en paralelo con las demás operaciones)
-    const tagsPromise = (async () => {
-      try {
-        // Obtener tags existentes para reutilizarlos
-        const existingTags = await prisma.tag.findMany({
-          select: { name: true },
-        });
-        
-        const existingTagNames = existingTags.map((t: { name: string }) => t.name);
-        
-        // Generar tags con IA
-        const suggestedTagNames = await openRouterClient.generateTags(title, content, existingTagNames);
-        
-        // Crear o encontrar tags y asociarlos a la idea
-        for (const tagName of suggestedTagNames) {
-          // Buscar o crear el tag
-          const tag = await prisma.tag.upsert({
-            where: { name: tagName },
-            update: {},
-            create: { 
-              name: tagName,
-              color: getRandomColor(),
-            },
-          });
-          
-          // Asociar tag a la idea
-          await prisma.ideaTag.create({
-            data: {
-              ideaId: idea.id,
-              tagId: tag.id,
-            },
-          });
-        }
-      } catch (error) {
-        console.error('Error generando tags:', error);
-        // No fallar la creación si falla la generación de tags
-      }
-    })();
-
-    // Generar la primera expansión automática con IA
-    try {
-      const expansionContent = await openRouterClient.generateInitialExpansion(title, content);
-      
-      await prisma.expansion.create({
-        data: {
-          ideaId: idea.id,
-          content: expansionContent,
-          type: 'AUTO_EXPANSION',
-        },
-      });
-    } catch (error) {
-      console.error('Error generando expansión automática:', error);
-      // No fallar la creación si falla la IA
-    }
-
-    // Agregar a Qdrant para búsqueda semántica
-    try {
-      await qdrantService.addIdea({
-        id: idea.id,
-        title: idea.title,
-        content: idea.content,
-        createdAt: idea.createdAt.toISOString(),
-      });
-    } catch (error) {
-      console.error('Error añadiendo a Qdrant:', error);
-      // No fallar la creación si falla Qdrant
-    }
-
-    // Esperar a que se completen los tags
-    await tagsPromise;
-
-    // Recuperar la idea con sus expansiones y tags
-    const ideaWithExpansions = await prisma.idea.findUnique({
-      where: { id: idea.id },
       include: {
-        expansions: {
-          orderBy: { createdAt: 'asc' },
-        },
+        expansions: true,
         tags: {
           include: {
             tag: true,
@@ -155,7 +69,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(ideaWithExpansions, { status: 201 });
+    // Procesar IA en segundo plano (sin await - fire and forget)
+    processIdeaInBackground(idea.id, title, content).catch((error) => {
+      console.error('⚠️ Error en procesamiento de fondo:', error);
+    });
+
+    // Responder INMEDIATAMENTE al usuario
+    return NextResponse.json({
+      ...idea,
+      message: 'Idea guardada. IA trabajando en segundo plano...',
+    }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -169,6 +92,140 @@ export async function POST(request: NextRequest) {
       { error: 'Error al crear la idea' },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * Procesa una idea en segundo plano: genera título, tags, expansión y embeddings
+ */
+async function processIdeaInBackground(
+  ideaId: string,
+  initialTitle: string,
+  content: string
+) {
+  try {
+    console.log(`🚀 Procesando idea ${ideaId} en segundo plano...`);
+    let finalTitle = initialTitle;
+
+    // 1. Generar título con IA si es temporal
+    if (initialTitle.endsWith('...') && initialTitle.length <= 53) {
+      try {
+        const generatedTitle = await openRouterClient.chat([
+          { role: 'system', content: 'Eres Einstein creando títulos brillantes. Crea un título corto (máximo 8 palabras), creativo e inspirador que capture la esencia. Sin comillas, sin puntos. Como si fuera el nombre de un descubrimiento fascinante. Solo el título, nada más.' },
+          { role: 'user', content: `Idea: ${content}` }
+        ]);
+        finalTitle = generatedTitle.trim().substring(0, 100);
+        
+        await prisma.idea.update({
+          where: { id: ideaId },
+          data: { title: finalTitle },
+        });
+        console.log(`✅ Título actualizado: ${finalTitle}`);
+      } catch (error) {
+        console.error('❌ Error generando título:', error);
+      }
+    }
+
+    // 2. Procesar tags y expansión en paralelo
+    await Promise.allSettled([
+      // Tags
+      (async () => {
+        try {
+          console.log('🏷️ Generando tags...');
+          const existingTags = await prisma.tag.findMany({
+            select: { name: true },
+          });
+          const existingTagNames = existingTags.map((t: { name: string }) => t.name);
+
+          const suggestedTagNames = await openRouterClient.generateTags(
+            finalTitle,
+            content,
+            existingTagNames
+          );
+
+          console.log(`📋 Tags sugeridos por IA: ${suggestedTagNames.join(', ')}`);
+
+          for (const tagName of suggestedTagNames) {
+            const tag = await prisma.tag.upsert({
+              where: { name: tagName },
+              update: {},
+              create: {
+                name: tagName,
+                color: getRandomColor(),
+              },
+            });
+
+            console.log(`🏷️ Tag creado/encontrado: ${tag.name} (ID: ${tag.id})`);
+
+            await prisma.ideaTag.create({
+              data: {
+                ideaId: ideaId,
+                tagId: tag.id,
+              },
+            }).catch(() => {
+              console.log(`⚠️ Tag ${tagName} ya estaba asociado a la idea ${ideaId}`);
+            });
+          }
+          console.log(`✅ Tags generados y asociados: ${suggestedTagNames.join(', ')}`);
+        } catch (error) {
+          console.error('❌ Error generando tags:', error);
+        }
+      })(),
+
+      // Primera expansión
+      (async () => {
+        try {
+          console.log('💡 Generando expansión inicial...');
+          const expansionContent = await openRouterClient.generateInitialExpansion(
+            finalTitle,
+            content
+          );
+
+          await prisma.expansion.create({
+            data: {
+              ideaId: ideaId,
+              content: expansionContent,
+              type: 'AUTO_EXPANSION',
+            },
+          });
+          console.log('✅ Expansión generada');
+        } catch (error) {
+          console.error('❌ Error generando expansión:', error);
+        }
+      })(),
+    ]);
+
+    // 3. Indexar en Qdrant
+    try {
+      await qdrantService.addIdea({
+        id: ideaId,
+        title: finalTitle,
+        content: content,
+        createdAt: new Date().toISOString(),
+      });
+      console.log('✅ Indexado en Qdrant');
+    } catch (error) {
+      console.error('❌ Error indexando en Qdrant:', error);
+    }
+
+    // 4. Marcar como completada
+    await prisma.idea.update({
+      where: { id: ideaId },
+      data: { aiProcessingStatus: 'COMPLETED' },
+    });
+
+    console.log(`🎉 Idea ${ideaId} procesada completamente`);
+    console.log(`📊 Resumen: Título="${finalTitle}", Tags=${(await prisma.ideaTag.count({ where: { ideaId } }))} asociados`);
+  } catch (error) {
+    console.error('💥 Error crítico en processIdeaInBackground:', error);
+    
+    // Marcar como fallida
+    await prisma.idea.update({
+      where: { id: ideaId },
+      data: { aiProcessingStatus: 'FAILED' },
+    }).catch(() => {
+      // Ignorar si falla actualizar el estado
+    });
   }
 }
 
@@ -191,11 +248,25 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
+    // Construir filtro de where
+    interface WhereClause {
+      userId: string;
+      deletedAt: null;
+      status?: 'ACTIVE' | 'ARCHIVED' | 'COMPLETED';
+    }
+    
+    const whereClause: WhereClause = {
+      userId,
+      deletedAt: null, // Siempre excluir ideas en papelera
+    };
+
+    // Solo agregar filtro de status si se especifica
+    if (status) {
+      whereClause.status = status as 'ACTIVE' | 'ARCHIVED' | 'COMPLETED';
+    }
+
     const ideas = await prisma.idea.findMany({
-      where: {
-        userId,
-        ...(status ? { status: status as 'ACTIVE' | 'ARCHIVED' | 'COMPLETED' } : {}),
-      },
+      where: whereClause,
       include: {
         expansions: {
           orderBy: { createdAt: 'asc' },
@@ -212,10 +283,7 @@ export async function GET(request: NextRequest) {
     });
 
     const total = await prisma.idea.count({
-      where: {
-        userId,
-        ...(status ? { status: status as 'ACTIVE' | 'ARCHIVED' | 'COMPLETED' } : {}),
-      },
+      where: whereClause,
     });
 
     return NextResponse.json({

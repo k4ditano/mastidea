@@ -14,13 +14,17 @@ datasource db {
 }
 
 model Idea {
-  id          String       @id @default(cuid())
-  userId      String       // Clerk user ID
-  title       String
-  content     String       @db.Text
-  status      IdeaStatus   @default(ACTIVE)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id                String              @id @default(cuid())
+  userId            String              // Clerk user ID
+  title             String
+  content           String              @db.Text
+  status            IdeaStatus          @default(ACTIVE)
+  successScore      Int?                // Valoración de éxito (1-10)
+  successAnalysis   String?             @db.Text // Análisis de viabilidad de la IA
+  deletedAt         DateTime?           // Fecha de descarte (papelera temporal)
+  aiProcessingStatus AIProcessingStatus @default(PENDING) // Estado del procesamiento IA
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
   
   expansions  Expansion[]
   tags        IdeaTag[]
@@ -28,6 +32,9 @@ model Idea {
   @@index([createdAt])
   @@index([status])
   @@index([userId])
+  @@index([successScore])
+  @@index([deletedAt])
+  @@index([aiProcessingStatus])
 }
 
 model Tag {
@@ -83,4 +90,10 @@ enum ExpansionType {
   CHALLENGE       // Problemas potenciales
   AUTO_EXPANSION  // Primera expansión automática
   SUMMARY         // Resumen ejecutivo al completar
+}
+
+enum AIProcessingStatus {
+  PENDING       // IA aún procesando
+  COMPLETED     // IA terminó de procesar
+  FAILED        // Error en el procesamiento
 }

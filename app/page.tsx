@@ -69,7 +69,8 @@ export default function Home() {
       }
 
       const idea = await response.json();
-      router.push(`/idea/${idea.id}`);
+      // Redirigir a /ideas para ver la lista con el estado de procesamiento
+      router.push('/ideas');
     } catch (error) {
       console.error('Error:', error);
       alert('Error al crear la idea. Por favor intenta de nuevo.');
@@ -109,7 +110,7 @@ export default function Home() {
                 id="content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Escribe tu idea aquí... Einstein creará un título automáticamente y te ayudará a desarrollarla 🧠"
+                placeholder="Escribe tu idea aquí... MastIdea creará un título automáticamente y te ayudará a desarrollarla 🧠"
                 rows={8}
                 className="
                   w-full px-5 py-4 rounded-2xl text-base
@@ -146,12 +147,12 @@ export default function Home() {
               {loading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Einstein está pensando...</span>
+                  <span>MastIdea está pensando...</span>
                 </>
               ) : (
                 <>
                   <FaRocket />
-                  <span>Desarrollar idea con Einstein</span>
+                  <span>Desarrollar idea con MastIdea</span>
                 </>
               )}
             </button>

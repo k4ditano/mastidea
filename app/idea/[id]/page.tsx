@@ -7,6 +7,8 @@ import Loading from '@/components/Loading';
 import VoiceRecorder from '@/components/VoiceRecorder';
 import ExportButtons from '@/components/ExportButtons';
 import TagEditor from '@/components/TagEditor';
+import SuccessScore from '@/components/SuccessScore';
+import IdeaActions from '@/components/IdeaActions';
 import { Idea, ExpansionType, EXPANSION_TYPE_LABELS } from '@/types';
 import { FaArrowLeft, FaTrash, FaCheckCircle } from 'react-icons/fa';
 import { formatDistanceToNow } from 'date-fns';
@@ -21,17 +23,11 @@ export default function IdeaPage() {
   const [replyingToExpansion, setReplyingToExpansion] = useState<string | null>(null);
   const [customMessage, setCustomMessage] = useState('');
   const [completing, setCompleting] = useState(false);
+  const [aiProcessing, setAiProcessing] = useState(false);
 
   const handleTranscript = (text: string) => {
     setCustomMessage((prev) => prev + (prev ? ' ' : '') + text);
   };
-
-  useEffect(() => {
-    if (params.id) {
-      loadIdea();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
 
   const loadIdea = async () => {
     try {
@@ -49,6 +45,42 @@ export default function IdeaPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (params.id) {
+      loadIdea();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.id]);
+
+  // Polling para estado de IA
+  useEffect(() => {
+    if (!idea || idea.aiProcessingStatus !== 'PENDING') {
+      setAiProcessing(false);
+      return;
+    }
+
+    setAiProcessing(true);
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/ideas/${params.id}/status`);
+        const data = await res.json();
+        if (data.aiProcessingStatus !== 'PENDING') {
+          const response = await fetch(`/api/ideas/${params.id}`);
+          if (response.ok) {
+            const updatedIdea = await response.json();
+            setIdea(updatedIdea);
+          }
+          setAiProcessing(false);
+        }
+      } catch (error) {
+        console.error('Error checking AI status:', error);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idea?.aiProcessingStatus, params.id]);
 
   const handleExpand = async (type: ExpansionType) => {
     setExpanding(true);
@@ -116,6 +148,11 @@ export default function IdeaPage() {
   };
 
   const handleComplete = async () => {
+    // Prevenir ejecuciones múltiples
+    if (completing) {
+      return;
+    }
+
     if (!confirm('¿Cerrar esta idea y generar resumen ejecutivo? No podrás seguir desarrollándola.')) {
       return;
     }
@@ -157,15 +194,18 @@ export default function IdeaPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white relative">
       {/* Global AI Loading Indicator */}
-      {(expanding || replyingToExpansion || completing) && (
+      {(expanding || replyingToExpansion || completing || aiProcessing) && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-white rounded-full shadow-2xl px-6 py-4 flex items-center space-x-3 border-2 border-einstein-500 animate-slide-in">
           <div className="animate-bounce">
             <span className="text-3xl">🧠</span>
           </div>
           <div>
             <p className="text-sm font-bold text-gray-900">
-              {completing ? 'Einstein está cerrando tu idea y actualizando tags...' : 'Einstein pensando...'}
+              {completing ? 'MastIdea está cerrando tu idea y actualizando tags...' : aiProcessing ? '🤖 IA procesando en segundo plano (título, tags, expansión)...' : 'MastIdea pensando...'}
             </p>
+            {aiProcessing && (
+              <p className="text-xs text-gray-600 mt-1">La página se actualizará automáticamente</p>
+            )}
           </div>
         </div>
       )}
@@ -217,6 +257,11 @@ export default function IdeaPage() {
           <ExportButtons idea={idea} />
         </div>
 
+        {/* Idea Actions - Edit, Reopen, Fork */}
+        <div className="mb-4">
+          <IdeaActions idea={idea} onUpdate={(updatedIdea) => setIdea(updatedIdea)} />
+        </div>
+
         {/* Chat-like Interface */}
         <div className="space-y-4 pb-64">
           {/* Welcome message - only if no expansions */}
@@ -224,7 +269,7 @@ export default function IdeaPage() {
             <div className="flex justify-center mb-6">
               <div className="bg-gradient-to-r from-einstein-50 to-purple-50 rounded-2xl px-6 py-4 border border-einstein-200 max-w-md text-center">
                 <p className="text-sm text-gray-700">
-                  <span className="font-semibold">💭 Einstein está listo para ayudarte.</span>
+                  <span className="font-semibold">💭 MastIdea está lista para ayudarte.</span>
                   <br />
                   <span className="text-xs text-gray-600">Elige una acción o escribe tu pregunta</span>
                 </p>
@@ -320,6 +365,16 @@ export default function IdeaPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Success Score - Show after SUMMARY expansion */}
+              {expansion.type === 'SUMMARY' && idea.successScore && (
+                <div className="mt-6">
+                  <SuccessScore 
+                    score={idea.successScore} 
+                    analysis={idea.successAnalysis} 
+                  />
+                </div>
+              )}
             </div>
           ))}
 
@@ -331,7 +386,7 @@ export default function IdeaPage() {
                 <div className="flex justify-center mb-3">
                   <div className="inline-flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-full border border-gray-200">
                     <span className="text-sm">🧠</span>
-                    <span className="text-xs text-gray-600 font-medium">Sigue desarrollando tu idea con Einstein</span>
+                    <span className="text-xs text-gray-600 font-medium">Sigue desarrollando tu idea con MastIdea</span>
                   </div>
                 </div>
               
@@ -373,7 +428,7 @@ export default function IdeaPage() {
                     type="text"
                     value={customMessage}
                     onChange={(e) => setCustomMessage(e.target.value)}
-                    placeholder="Escribe tu pregunta o idea a Einstein..."
+                    placeholder="Escribe tu pregunta o comentario..."
                     disabled={expanding || replyingToExpansion !== null}
                     className="flex-1 px-5 py-4 text-base text-gray-900 bg-white border-2 border-gray-300 rounded-2xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 disabled:opacity-50 disabled:bg-gray-100 shadow-sm placeholder:text-gray-400 transition-all"
                   />

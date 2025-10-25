@@ -18,7 +18,11 @@ export async function GET(
 
     const { id } = await params;
     const idea = await prisma.idea.findFirst({
-      where: { id, userId },
+      where: { 
+        id, 
+        userId,
+        deletedAt: null, // Excluir ideas en papelera
+      },
       include: {
         expansions: {
           orderBy: { createdAt: 'asc' },
@@ -71,7 +75,7 @@ export async function GET(
 }
 
 /**
- * DELETE /api/ideas/[id] - Elimina una idea
+ * DELETE /api/ideas/[id] - Mueve idea a papelera (soft delete)
  */
 export async function DELETE(
   request: NextRequest,
@@ -97,22 +101,20 @@ export async function DELETE(
       );
     }
 
-    await prisma.idea.delete({
+    // Marcar como eliminada (soft delete) en lugar de borrar
+    await prisma.idea.update({
       where: { id },
+      data: {
+        deletedAt: new Date(),
+        status: 'ARCHIVED',
+      },
     });
 
-    // Eliminar de Qdrant
-    try {
-      await qdrantService.deleteIdea(id);
-    } catch (error) {
-      console.error('Error eliminando de Qdrant:', error);
-    }
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: 'Idea movida a papelera' });
   } catch (error) {
-    console.error('Error eliminando idea:', error);
+    console.error('Error moviendo idea a papelera:', error);
     return NextResponse.json(
-      { error: 'Error al eliminar la idea' },
+      { error: 'Error al mover la idea a papelera' },
       { status: 500 }
     );
   }

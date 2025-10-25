@@ -3,6 +3,10 @@ export interface Idea {
   title: string;
   content: string;
   status: 'ACTIVE' | 'ARCHIVED' | 'COMPLETED';
+  successScore?: number | null;
+  successAnalysis?: string | null;
+  deletedAt?: string | null;
+  aiProcessingStatus?: 'PENDING' | 'COMPLETED' | 'FAILED';
   createdAt: string;
   updatedAt: string;
   expansions?: Expansion[];

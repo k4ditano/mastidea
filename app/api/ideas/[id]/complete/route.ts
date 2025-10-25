@@ -65,6 +65,15 @@ export async function POST(
       );
     }
 
+    // Verificar si ya existe un resumen (por si hubo llamada duplicada)
+    const existingSummary = idea.expansions.find((exp: { type: string }) => exp.type === 'SUMMARY');
+    if (existingSummary) {
+      return NextResponse.json(
+        { error: 'Esta idea ya tiene un resumen ejecutivo' },
+        { status: 400 }
+      );
+    }
+
     // Preparar contexto de todas las expansiones
     const expansionsContext = idea.expansions
       .map((exp: { userMessage?: string | null; content: string }, idx: number) => {
@@ -107,6 +116,13 @@ ${expansionsContext}
 Crea el resumen ejecutivo ahora.`
       }
     ]);
+
+    // Analizar potencial de éxito con IA
+    const successAnalysisResult = await openRouterClient.analyzeSuccess(
+      idea.title,
+      idea.content,
+      idea.expansions.map((exp: { content: string }) => exp.content)
+    );
 
     // Guardar el resumen como una expansión especial tipo SUMMARY
     await prisma.expansion.create({
@@ -165,10 +181,14 @@ Crea el resumen ejecutivo ahora.`
       // No fallar el cierre de la idea si fallan los tags
     }
 
-    // Cambiar estado a COMPLETED
+    // Cambiar estado a COMPLETED y guardar análisis de éxito
     const completedIdea = await prisma.idea.update({
       where: { id },
-      data: { status: 'COMPLETED' },
+      data: { 
+        status: 'COMPLETED',
+        successScore: successAnalysisResult.score,
+        successAnalysis: successAnalysisResult.analysis,
+      },
       include: {
         expansions: {
           orderBy: { createdAt: 'asc' },

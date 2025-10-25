@@ -4,8 +4,9 @@ import { Idea } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
-import { FaChevronRight, FaComments, FaCheckCircle } from 'react-icons/fa';
+import { FaChevronRight, FaComments, FaCheckCircle, FaStar, FaRobot, FaExclamationTriangle } from 'react-icons/fa';
 import TagBadge from './TagBadge';
+import { useState, useEffect } from 'react';
 
 interface IdeaCardProps {
   idea: Idea;
@@ -14,6 +15,30 @@ interface IdeaCardProps {
 
 export default function IdeaCard({ idea, onTagClick }: IdeaCardProps) {
   const expansionCount = idea.expansions?.length || 0;
+  const [aiStatus, setAiStatus] = useState(idea.aiProcessingStatus || 'COMPLETED');
+
+  // Polling para actualizar el estado de IA
+  useEffect(() => {
+    if (aiStatus === 'PENDING') {
+      const interval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/ideas/${idea.id}/status`);
+          const data = await res.json();
+          if (data.aiProcessingStatus !== 'PENDING') {
+            setAiStatus(data.aiProcessingStatus);
+            // Recargar la página actual para mostrar tags/expansiones nuevas
+            if (typeof window !== 'undefined') {
+              window.location.reload();
+            }
+          }
+        } catch (error) {
+          console.error('Error checking AI status:', error);
+        }
+      }, 3000); // Check cada 3 segundos
+
+      return () => clearInterval(interval);
+    }
+  }, [aiStatus, idea.id]);
 
   return (
     <Link href={`/idea/${idea.id}`}>
@@ -29,10 +54,44 @@ export default function IdeaCard({ idea, onTagClick }: IdeaCardProps) {
         {/* Header */}
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1">
-            {idea.status === 'COMPLETED' && (
+            {/* Estado de IA en procesamiento */}
+            {aiStatus === 'PENDING' && (
+              <div className="flex items-center space-x-2 mb-2 animate-pulse">
+                <FaRobot className="text-einstein-500 text-sm" />
+                <span className="text-xs font-semibold text-einstein-600 uppercase tracking-wide">
+                  IA procesando...
+                </span>
+                <div className="flex space-x-1">
+                  <div className="w-1.5 h-1.5 bg-einstein-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-1.5 h-1.5 bg-einstein-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-1.5 h-1.5 bg-einstein-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+              </div>
+            )}
+            
+            {/* Error en IA */}
+            {aiStatus === 'FAILED' && (
               <div className="flex items-center space-x-2 mb-2">
-                <FaCheckCircle className="text-green-600 text-sm" />
-                <span className="text-xs font-semibold text-green-700 uppercase tracking-wide">Completada</span>
+                <FaExclamationTriangle className="text-yellow-600 text-sm" />
+                <span className="text-xs font-semibold text-yellow-700 uppercase tracking-wide">
+                  Error en IA
+                </span>
+              </div>
+            )}
+
+            {/* Idea completada */}
+            {idea.status === 'COMPLETED' && (
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="flex items-center space-x-2">
+                  <FaCheckCircle className="text-green-600 text-sm" />
+                  <span className="text-xs font-semibold text-green-700 uppercase tracking-wide">Completada</span>
+                </div>
+                {idea.successScore && (
+                  <div className="flex items-center space-x-1 px-2 py-0.5 bg-green-100 rounded-full">
+                    <FaStar className="text-green-600 text-xs" />
+                    <span className="text-xs font-bold text-green-700">{idea.successScore}/10</span>
+                  </div>
+                )}
               </div>
             )}
             <h3 className="text-lg font-semibold text-gray-900 group-hover:text-einstein-600 transition-colors line-clamp-2">

@@ -1,17 +1,39 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { auth } from '@clerk/nextjs/server';
 
 /**
  * GET /api/tags
- * Obtiene todos los tags con conteo de ideas
+ * Obtiene todos los tags del usuario con conteo de ideas
  */
 export async function GET() {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
+    // Obtener solo tags que están asociados a ideas del usuario
     const tags = await prisma.tag.findMany({
+      where: {
+        ideas: {
+          some: {
+            idea: {
+              userId: userId
+            }
+          }
+        }
+      },
       include: {
         _count: {
           select: {
-            ideas: true
+            ideas: {
+              where: {
+                idea: {
+                  userId: userId
+                }
+              }
+            }
           }
         }
       },
