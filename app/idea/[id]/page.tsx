@@ -11,7 +11,7 @@ import TagEditor from '@/components/TagEditor';
 import SuccessScore from '@/components/SuccessScore';
 import IdeaActions from '@/components/IdeaActions';
 import { Idea, ExpansionType, EXPANSION_TYPE_LABELS } from '@/types';
-import { FaArrowLeft, FaTrash, FaCheckCircle } from 'react-icons/fa';
+import { FaArrowLeft, FaTrash, FaCheckCircle, FaClipboardList } from 'react-icons/fa';
 import { formatDistanceToNow } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 
@@ -38,6 +38,7 @@ export default function IdeaPage() {
   const [replyingToExpansion, setReplyingToExpansion] = useState<string | null>(null);
   const [customMessage, setCustomMessage] = useState('');
   const [completing, setCompleting] = useState(false);
+  const [summarizing, setSummarizing] = useState(false);
   const [aiProcessing, setAiProcessing] = useState(false);
 
   const handleTranscript = (text: string) => {
@@ -192,6 +193,39 @@ export default function IdeaPage() {
     }
   };
 
+  const handleSummarize = async () => {
+    // Prevenir ejecuciones múltiples
+    if (summarizing) {
+      return;
+    }
+
+    if (!confirm(t('confirmSummarize'))) {
+      return;
+    }
+
+    setSummarizing(true);
+    try {
+      const response = await fetch(`/api/ideas/${params.id}/summarize`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Mostrar mensaje específico si existe
+        throw new Error(data.message || 'Error generating summary');
+      }
+
+      await loadIdea();
+      alert(t('summarizeSuccess'));
+    } catch (error) {
+      console.error('Error:', error);
+      alert((error as Error).message || t('errorSummarizing'));
+    } finally {
+      setSummarizing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -209,14 +243,14 @@ export default function IdeaPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white relative">
       {/* Global AI Loading Indicator */}
-      {(expanding || replyingToExpansion || completing || aiProcessing) && (
+      {(expanding || replyingToExpansion || completing || summarizing || aiProcessing) && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-white rounded-full shadow-2xl px-6 py-4 flex items-center space-x-3 border-2 border-einstein-500 animate-slide-in">
           <div className="animate-bounce">
             <span className="text-3xl">🧠</span>
           </div>
           <div>
             <p className="text-sm font-bold text-gray-900">
-              {completing ? t('aiCompleting') : aiProcessing ? t('aiProcessingBackground') : t('aiThinking')}
+              {completing ? t('aiCompleting') : summarizing ? t('aiSummarizing') : aiProcessing ? t('aiProcessingBackground') : t('aiThinking')}
             </p>
             {aiProcessing && (
               <p className="text-xs text-gray-600 mt-1">{t('autoUpdate')}</p>
@@ -238,14 +272,24 @@ export default function IdeaPage() {
           
           <div className="flex items-center space-x-2">
             {idea.status === 'ACTIVE' && (
-              <button
-                onClick={handleComplete}
-                disabled={completing}
-                className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors disabled:opacity-50 text-sm font-medium shadow-md"
-              >
-                <FaCheckCircle />
-                <span>{completing ? t('closing') : t('close')}</span>
-              </button>
+              <>
+                <button
+                  onClick={handleSummarize}
+                  disabled={summarizing}
+                  className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg transition-colors disabled:opacity-50 text-sm font-medium shadow-md"
+                >
+                  <FaClipboardList />
+                  <span>{summarizing ? t('summarizing') : t('summarize')}</span>
+                </button>
+                <button
+                  onClick={handleComplete}
+                  disabled={completing}
+                  className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors disabled:opacity-50 text-sm font-medium shadow-md"
+                >
+                  <FaCheckCircle />
+                  <span>{completing ? t('closing') : t('close')}</span>
+                </button>
+              </>
             )}
             <button
               onClick={handleDelete}
