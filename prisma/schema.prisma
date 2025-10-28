@@ -14,23 +14,23 @@ datasource db {
 }
 
 model Idea {
-  id                String              @id @default(cuid())
-  userId            String              // Clerk user ID (propietario)
-  title             String
-  content           String              @db.Text
-  status            IdeaStatus          @default(ACTIVE)
-  successScore      Int?                // Valoración de éxito (1-10)
-  successAnalysis   String?             @db.Text // Análisis de viabilidad de la IA
-  deletedAt         DateTime?           // Fecha de descarte (papelera temporal)
+  id                 String             @id @default(cuid())
+  userId             String // Clerk user ID (propietario)
+  title              String
+  content            String             @db.Text
+  status             IdeaStatus         @default(ACTIVE)
+  successScore       Int? // Valoración de éxito (1-10)
+  successAnalysis    String?            @db.Text // Análisis de viabilidad de la IA
+  deletedAt          DateTime? // Fecha de descarte (papelera temporal)
   aiProcessingStatus AIProcessingStatus @default(PENDING) // Estado del procesamiento IA
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  
-  expansions     Expansion[]
-  tags           IdeaTag[]
-  collaborators  IdeaCollaborator[]    // Colaboradores invitados
-  invitations    IdeaInvitation[]      // Invitaciones pendientes
-  
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  expansions    Expansion[]
+  tags          IdeaTag[]
+  collaborators IdeaCollaborator[] // Colaboradores invitados
+  invitations   IdeaInvitation[] // Invitaciones pendientes
+
   @@index([createdAt])
   @@index([status])
   @@index([userId])
@@ -40,15 +40,15 @@ model Idea {
 }
 
 model IdeaCollaborator {
-  id          String       @id @default(cuid())
-  ideaId      String
-  userId      String       // Clerk user ID del colaborador
-  userEmail   String       // Email del colaborador para búsquedas
-  role        CollaboratorRole @default(COLLABORATOR)
-  addedAt     DateTime     @default(now())
-  
-  idea        Idea         @relation(fields: [ideaId], references: [id], onDelete: Cascade)
-  
+  id        String           @id @default(cuid())
+  ideaId    String
+  userId    String // Clerk user ID del colaborador
+  userEmail String // Email del colaborador para búsquedas
+  role      CollaboratorRole @default(COLLABORATOR)
+  addedAt   DateTime         @default(now())
+
+  idea Idea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
   @@unique([ideaId, userId])
   @@index([ideaId])
   @@index([userId])
@@ -56,18 +56,18 @@ model IdeaCollaborator {
 }
 
 model IdeaInvitation {
-  id          String            @id @default(cuid())
-  ideaId      String
-  inviterUserId String          // Quien envía la invitación
-  invitedEmail  String          // Email del usuario invitado
-  invitedUserId String?         // Clerk ID cuando se encuentre el usuario
-  status      InvitationStatus  @default(PENDING)
-  message     String?           @db.Text  // Mensaje personalizado de invitación
-  createdAt   DateTime          @default(now())
-  respondedAt DateTime?         // Fecha de aceptación/rechazo
-  
-  idea        Idea              @relation(fields: [ideaId], references: [id], onDelete: Cascade)
-  
+  id            String           @id @default(cuid())
+  ideaId        String
+  inviterUserId String // Quien envía la invitación
+  invitedEmail  String // Email del usuario invitado
+  invitedUserId String? // Clerk ID cuando se encuentre el usuario
+  status        InvitationStatus @default(PENDING)
+  message       String?          @db.Text // Mensaje personalizado de invitación
+  createdAt     DateTime         @default(now())
+  respondedAt   DateTime? // Fecha de aceptación/rechazo
+
+  idea Idea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
   @@unique([ideaId, invitedEmail])
   @@index([ideaId])
   @@index([invitedEmail])
@@ -76,40 +76,40 @@ model IdeaInvitation {
 }
 
 model Tag {
-  id          String       @id @default(cuid())
-  name        String       @unique
-  color       String       @default("#7257ff") // Color por defecto (einstein-500)
-  createdAt   DateTime     @default(now())
-  
-  ideas       IdeaTag[]
-  
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String   @default("#7257ff") // Color por defecto (einstein-500)
+  createdAt DateTime @default(now())
+
+  ideas IdeaTag[]
+
   @@index([name])
 }
 
 model IdeaTag {
-  ideaId      String
-  tagId       String
-  createdAt   DateTime     @default(now())
-  
-  idea        Idea         @relation(fields: [ideaId], references: [id], onDelete: Cascade)
-  tag         Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  
+  ideaId    String
+  tagId     String
+  createdAt DateTime @default(now())
+
+  idea Idea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
   @@id([ideaId, tagId])
   @@index([ideaId])
   @@index([tagId])
 }
 
 model Expansion {
-  id          String         @id @default(cuid())
+  id          String        @id @default(cuid())
   ideaId      String
-  content     String         @db.Text
-  userMessage String?        @db.Text  // Mensaje del usuario (si es una conversación)
+  content     String        @db.Text
+  userMessage String?       @db.Text // Mensaje del usuario (si es una conversación)
   type        ExpansionType
-  aiModel     String         @default("meta-llama/llama-3.1-8b-instruct")
-  createdAt   DateTime       @default(now())
-  
-  idea        Idea           @relation(fields: [ideaId], references: [id], onDelete: Cascade)
-  
+  aiModel     String        @default("meta-llama/llama-3.1-8b-instruct")
+  createdAt   DateTime      @default(now())
+
+  idea Idea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
   @@index([ideaId])
   @@index([createdAt])
 }
@@ -121,29 +121,29 @@ enum IdeaStatus {
 }
 
 enum ExpansionType {
-  SUGGESTION      // Sugerencias de mejora
-  QUESTION        // Preguntas provocadoras
-  CONNECTION      // Conexiones con otros conceptos
-  USE_CASE        // Casos de uso prácticos
-  CHALLENGE       // Problemas potenciales
-  AUTO_EXPANSION  // Primera expansión automática
-  SUMMARY         // Resumen ejecutivo al completar
+  SUGGESTION // Sugerencias de mejora
+  QUESTION // Preguntas provocadoras
+  CONNECTION // Conexiones con otros conceptos
+  USE_CASE // Casos de uso prácticos
+  CHALLENGE // Problemas potenciales
+  AUTO_EXPANSION // Primera expansión automática
+  SUMMARY // Resumen ejecutivo al completar
 }
 
 enum AIProcessingStatus {
-  PENDING       // IA aún procesando
-  COMPLETED     // IA terminó de procesar
-  FAILED        // Error en el procesamiento
+  PENDING // IA aún procesando
+  COMPLETED // IA terminó de procesar
+  FAILED // Error en el procesamiento
 }
 
 enum CollaboratorRole {
-  OWNER         // Propietario de la idea
-  COLLABORATOR  // Colaborador con permisos de edición
+  OWNER // Propietario de la idea
+  COLLABORATOR // Colaborador con permisos de edición
 }
 
 enum InvitationStatus {
-  PENDING       // Invitación pendiente
-  ACCEPTED      // Invitación aceptada
-  REJECTED      // Invitación rechazada
-  EXPIRED       // Invitación expirada
+  PENDING // Invitación pendiente
+  ACCEPTED // Invitación aceptada
+  REJECTED // Invitación rechazada
+  EXPIRED // Invitación expirada
 }

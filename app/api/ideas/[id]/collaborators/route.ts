@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
 
 // GET /api/ideas/[id]/collaborators - Obtener colaboradores de una idea
 export async function GET(
@@ -11,10 +11,7 @@ export async function GET(
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -29,7 +26,7 @@ export async function GET(
 
     if (!idea) {
       return NextResponse.json(
-        { error: 'Idea no encontrada' },
+        { error: "Idea no encontrada" },
         { status: 404 }
       );
     }
@@ -42,16 +39,16 @@ export async function GET(
 
     if (!isOwner && !isCollaborator) {
       return NextResponse.json(
-        { error: 'No tienes permiso para ver los colaboradores de esta idea' },
+        { error: "No tienes permiso para ver los colaboradores de esta idea" },
         { status: 403 }
       );
     }
 
     return NextResponse.json(idea.collaborators);
   } catch (error) {
-    console.error('Error obteniendo colaboradores:', error);
+    console.error("Error obteniendo colaboradores:", error);
     return NextResponse.json(
-      { error: 'Error al obtener colaboradores' },
+      { error: "Error al obtener colaboradores" },
       { status: 500 }
     );
   }
@@ -66,10 +63,7 @@ export async function DELETE(
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -77,7 +71,7 @@ export async function DELETE(
 
     if (!collaboratorId) {
       return NextResponse.json(
-        { error: 'Se requiere collaboratorId' },
+        { error: "Se requiere collaboratorId" },
         { status: 400 }
       );
     }
@@ -89,14 +83,14 @@ export async function DELETE(
 
     if (!idea) {
       return NextResponse.json(
-        { error: 'Idea no encontrada' },
+        { error: "Idea no encontrada" },
         { status: 404 }
       );
     }
 
     if (idea.userId !== userId) {
       return NextResponse.json(
-        { error: 'Solo el propietario puede eliminar colaboradores' },
+        { error: "Solo el propietario puede eliminar colaboradores" },
         { status: 403 }
       );
     }
@@ -111,9 +105,9 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error eliminando colaborador:', error);
+    console.error("Error eliminando colaborador:", error);
     return NextResponse.json(
-      { error: 'Error al eliminar colaborador' },
+      { error: "Error al eliminar colaborador" },
       { status: 500 }
     );
   }

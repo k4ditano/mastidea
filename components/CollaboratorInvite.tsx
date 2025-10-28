@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 interface CollaboratorInviteProps {
   ideaId: string;
@@ -8,9 +8,13 @@ interface CollaboratorInviteProps {
   onClose?: () => void;
 }
 
-export default function CollaboratorInvite({ ideaId, onInviteSent, onClose }: CollaboratorInviteProps) {
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
+export default function CollaboratorInvite({
+  ideaId,
+  onInviteSent,
+  onClose,
+}: CollaboratorInviteProps) {
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -18,10 +22,10 @@ export default function CollaboratorInvite({ ideaId, onInviteSent, onClose }: Co
     setLoading(true);
 
     try {
-      const response = await fetch('/api/invitations', {
-        method: 'POST',
+      const response = await fetch("/api/invitations", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ideaId,
@@ -31,18 +35,18 @@ export default function CollaboratorInvite({ ideaId, onInviteSent, onClose }: Co
       });
 
       if (response.ok) {
-        setEmail('');
-        setMessage('');
+        setEmail("");
+        setMessage("");
         onInviteSent?.();
         onClose?.();
-        alert('Invitación enviada correctamente');
+        alert("Invitación enviada correctamente");
       } else {
         const error = await response.json();
-        alert(error.error || 'Error al enviar la invitación');
+        alert(error.error || "Error al enviar la invitación");
       }
     } catch (error) {
-      console.error('Error sending invitation:', error);
-      alert('Error al enviar la invitación');
+      console.error("Error sending invitation:", error);
+      alert("Error al enviar la invitación");
     } finally {
       setLoading(false);
     }
@@ -63,15 +67,28 @@ export default function CollaboratorInvite({ ideaId, onInviteSent, onClose }: Co
             onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               Email del colaborador
             </label>
             <input
@@ -86,7 +103,10 @@ export default function CollaboratorInvite({ ideaId, onInviteSent, onClose }: Co
           </div>
 
           <div>
-            <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="message"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               Mensaje (opcional)
             </label>
             <textarea
@@ -105,7 +125,7 @@ export default function CollaboratorInvite({ ideaId, onInviteSent, onClose }: Co
               disabled={loading}
               className="flex-1 px-4 py-2 bg-einstein-600 hover:bg-einstein-700 disabled:bg-einstein-400 text-white rounded-lg font-medium transition-colors"
             >
-              {loading ? 'Enviando...' : 'Enviar invitación'}
+              {loading ? "Enviando..." : "Enviar invitación"}
             </button>
             <button
               type="button"

@@ -3,11 +3,11 @@ export interface Idea {
   userId: string; // Clerk user ID del propietario
   title: string;
   content: string;
-  status: 'ACTIVE' | 'ARCHIVED' | 'COMPLETED';
+  status: "ACTIVE" | "ARCHIVED" | "COMPLETED";
   successScore?: number | null;
   successAnalysis?: string | null;
   deletedAt?: string | null;
-  aiProcessingStatus?: 'PENDING' | 'COMPLETED' | 'FAILED';
+  aiProcessingStatus?: "PENDING" | "COMPLETED" | "FAILED";
   createdAt: string;
   updatedAt: string;
   expansions?: Expansion[];
@@ -22,7 +22,7 @@ export interface IdeaCollaborator {
   ideaId: string;
   userId: string;
   userEmail: string;
-  role: 'OWNER' | 'COLLABORATOR';
+  role: "OWNER" | "COLLABORATOR";
   addedAt: string;
 }
 
@@ -32,7 +32,7 @@ export interface IdeaInvitation {
   inviterUserId: string;
   invitedEmail: string;
   invitedUserId?: string | null;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "EXPIRED";
   message?: string | null;
   createdAt: string;
   respondedAt?: string | null;
@@ -65,14 +65,14 @@ export interface Expansion {
   createdAt: string;
 }
 
-export type ExpansionType = 
-  | 'AUTO_EXPANSION'
-  | 'SUGGESTION'
-  | 'QUESTION'
-  | 'CONNECTION'
-  | 'USE_CASE'
-  | 'CHALLENGE'
-  | 'SUMMARY';
+export type ExpansionType =
+  | "AUTO_EXPANSION"
+  | "SUGGESTION"
+  | "QUESTION"
+  | "CONNECTION"
+  | "USE_CASE"
+  | "CHALLENGE"
+  | "SUMMARY";
 
 export interface SimilarIdea {
   id: string;
@@ -82,40 +82,43 @@ export interface SimilarIdea {
   createdAt: string;
 }
 
-export const EXPANSION_TYPE_LABELS: Record<ExpansionType, { label: string; emoji: string; color: string }> = {
+export const EXPANSION_TYPE_LABELS: Record<
+  ExpansionType,
+  { label: string; emoji: string; color: string }
+> = {
   AUTO_EXPANSION: {
-    label: 'Primera exploración',
-    emoji: '🚀',
-    color: 'bg-blue-100 text-blue-700',
+    label: "Primera exploración",
+    emoji: "🚀",
+    color: "bg-blue-100 text-blue-700",
   },
   SUGGESTION: {
-    label: 'Sugerencias',
-    emoji: '💡',
-    color: 'bg-yellow-100 text-yellow-700',
+    label: "Sugerencias",
+    emoji: "💡",
+    color: "bg-yellow-100 text-yellow-700",
   },
   QUESTION: {
-    label: 'Preguntas',
-    emoji: '❓',
-    color: 'bg-purple-100 text-purple-700',
+    label: "Preguntas",
+    emoji: "❓",
+    color: "bg-purple-100 text-purple-700",
   },
   CONNECTION: {
-    label: 'Conexiones',
-    emoji: '🔗',
-    color: 'bg-green-100 text-green-700',
+    label: "Conexiones",
+    emoji: "🔗",
+    color: "bg-green-100 text-green-700",
   },
   USE_CASE: {
-    label: 'Casos de uso',
-    emoji: '🎯',
-    color: 'bg-orange-100 text-orange-700',
+    label: "Casos de uso",
+    emoji: "🎯",
+    color: "bg-orange-100 text-orange-700",
   },
   CHALLENGE: {
-    label: 'Desafíos',
-    emoji: '🧩',
-    color: 'bg-red-100 text-red-700',
+    label: "Desafíos",
+    emoji: "🧩",
+    color: "bg-red-100 text-red-700",
   },
   SUMMARY: {
-    label: 'Resumen ejecutivo',
-    emoji: '📋',
-    color: 'bg-indigo-100 text-indigo-700',
+    label: "Resumen ejecutivo",
+    emoji: "📋",
+    color: "bg-indigo-100 text-indigo-700",
   },
 };

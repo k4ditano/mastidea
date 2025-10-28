@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth, clerkClient } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
 
 // POST /api/invitations/[id]/respond - Aceptar o rechazar invitación
 export async function POST(
@@ -11,16 +11,13 @@ export async function POST(
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     const { id } = await params;
     const { action } = await request.json(); // 'accept' o 'reject'
 
-    if (!['accept', 'reject'].includes(action)) {
+    if (!["accept", "reject"].includes(action)) {
       return NextResponse.json(
         { error: 'Acción inválida. Debe ser "accept" o "reject"' },
         { status: 400 }
@@ -37,15 +34,15 @@ export async function POST(
 
     if (!invitation) {
       return NextResponse.json(
-        { error: 'Invitación no encontrada' },
+        { error: "Invitación no encontrada" },
         { status: 404 }
       );
     }
 
     // Verificar que la invitación está pendiente
-    if (invitation.status !== 'PENDING') {
+    if (invitation.status !== "PENDING") {
       return NextResponse.json(
-        { error: 'Esta invitación ya fue procesada' },
+        { error: "Esta invitación ya fue procesada" },
         { status: 400 }
       );
     }
@@ -57,7 +54,7 @@ export async function POST(
 
     if (!userEmail) {
       return NextResponse.json(
-        { error: 'No se encontró el email del usuario' },
+        { error: "No se encontró el email del usuario" },
         { status: 400 }
       );
     }
@@ -65,19 +62,19 @@ export async function POST(
     // Verificar que la invitación es para este usuario
     if (invitation.invitedEmail !== userEmail) {
       return NextResponse.json(
-        { error: 'Esta invitación no es para ti' },
+        { error: "Esta invitación no es para ti" },
         { status: 403 }
       );
     }
 
-    if (action === 'accept') {
+    if (action === "accept") {
       // Crear colaborador y actualizar invitación en una transacción
       const result = await prisma.$transaction(async (tx) => {
         // Actualizar invitación
         const updatedInvitation = await tx.ideaInvitation.update({
           where: { id },
           data: {
-            status: 'ACCEPTED',
+            status: "ACCEPTED",
             respondedAt: new Date(),
             invitedUserId: userId,
           },
@@ -89,7 +86,7 @@ export async function POST(
             ideaId: invitation.ideaId,
             userId,
             userEmail,
-            role: 'COLLABORATOR',
+            role: "COLLABORATOR",
           },
         });
 
@@ -102,7 +99,7 @@ export async function POST(
       const updatedInvitation = await prisma.ideaInvitation.update({
         where: { id },
         data: {
-          status: 'REJECTED',
+          status: "REJECTED",
           respondedAt: new Date(),
           invitedUserId: userId,
         },
@@ -111,9 +108,9 @@ export async function POST(
       return NextResponse.json(updatedInvitation);
     }
   } catch (error) {
-    console.error('Error procesando invitación:', error);
+    console.error("Error procesando invitación:", error);
     return NextResponse.json(
-      { error: 'Error al procesar invitación' },
+      { error: "Error al procesar invitación" },
       { status: 500 }
     );
   }

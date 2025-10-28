@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth, clerkClient } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
 
 // GET /api/invitations - Obtener invitaciones pendientes del usuario actual
 export async function GET() {
@@ -8,10 +8,7 @@ export async function GET() {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     // Obtener email del usuario actual
@@ -21,7 +18,7 @@ export async function GET() {
 
     if (!userEmail) {
       return NextResponse.json(
-        { error: 'No se encontró el email del usuario' },
+        { error: "No se encontró el email del usuario" },
         { status: 400 }
       );
     }
@@ -30,7 +27,7 @@ export async function GET() {
     const invitations = await prisma.ideaInvitation.findMany({
       where: {
         invitedEmail: userEmail,
-        status: 'PENDING',
+        status: "PENDING",
       },
       include: {
         idea: {
@@ -44,7 +41,7 @@ export async function GET() {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
@@ -69,15 +66,15 @@ export async function GET() {
           return {
             ...invitation,
             inviterName: inviter.firstName
-              ? `${inviter.firstName} ${inviter.lastName || ''}`
-              : inviter.username || 'Usuario',
+              ? `${inviter.firstName} ${inviter.lastName || ""}`
+              : inviter.username || "Usuario",
             inviterEmail: inviter.emailAddresses[0]?.emailAddress,
           };
         } catch {
           return {
             ...invitation,
-            inviterName: 'Usuario',
-            inviterEmail: '',
+            inviterName: "Usuario",
+            inviterEmail: "",
           };
         }
       })
@@ -85,9 +82,9 @@ export async function GET() {
 
     return NextResponse.json(invitationsWithInviterInfo);
   } catch (error) {
-    console.error('Error obteniendo invitaciones:', error);
+    console.error("Error obteniendo invitaciones:", error);
     return NextResponse.json(
-      { error: 'Error al obtener invitaciones' },
+      { error: "Error al obtener invitaciones" },
       { status: 500 }
     );
   }
@@ -99,17 +96,14 @@ export async function POST(request: NextRequest) {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     const { ideaId, invitedEmail, message } = await request.json();
 
     if (!ideaId || !invitedEmail) {
       return NextResponse.json(
-        { error: 'Se requiere ideaId e invitedEmail' },
+        { error: "Se requiere ideaId e invitedEmail" },
         { status: 400 }
       );
     }
@@ -125,14 +119,14 @@ export async function POST(request: NextRequest) {
 
     if (!idea) {
       return NextResponse.json(
-        { error: 'Idea no encontrada' },
+        { error: "Idea no encontrada" },
         { status: 404 }
       );
     }
 
     if (idea.userId !== userId) {
       return NextResponse.json(
-        { error: 'No tienes permiso para invitar colaboradores a esta idea' },
+        { error: "No tienes permiso para invitar colaboradores a esta idea" },
         { status: 403 }
       );
     }
@@ -144,19 +138,19 @@ export async function POST(request: NextRequest) {
 
     if (ownerEmail === invitedEmail) {
       return NextResponse.json(
-        { error: 'No puedes invitarte a ti mismo' },
+        { error: "No puedes invitarte a ti mismo" },
         { status: 400 }
       );
     }
 
     // Verificar si ya existe una invitación pendiente
     const existingInvitation = idea.invitations.find(
-      (inv) => inv.invitedEmail === invitedEmail && inv.status === 'PENDING'
+      (inv) => inv.invitedEmail === invitedEmail && inv.status === "PENDING"
     );
 
     if (existingInvitation) {
       return NextResponse.json(
-        { error: 'Ya existe una invitación pendiente para este email' },
+        { error: "Ya existe una invitación pendiente para este email" },
         { status: 400 }
       );
     }
@@ -168,7 +162,7 @@ export async function POST(request: NextRequest) {
 
     if (isAlreadyCollaborator) {
       return NextResponse.json(
-        { error: 'Este usuario ya es colaborador de esta idea' },
+        { error: "Este usuario ya es colaborador de esta idea" },
         { status: 400 }
       );
     }
@@ -183,7 +177,7 @@ export async function POST(request: NextRequest) {
         invitedUserId = users.data[0].id;
       }
     } catch {
-      console.log('Usuario no encontrado por email:', invitedEmail);
+      console.log("Usuario no encontrado por email:", invitedEmail);
     }
 
     // Crear la invitación
@@ -194,7 +188,7 @@ export async function POST(request: NextRequest) {
         invitedEmail,
         invitedUserId,
         message,
-        status: 'PENDING',
+        status: "PENDING",
       },
       include: {
         idea: {
@@ -212,9 +206,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(invitation, { status: 201 });
   } catch (error) {
-    console.error('Error creando invitación:', error);
+    console.error("Error creando invitación:", error);
     return NextResponse.json(
-      { error: 'Error al crear invitación' },
+      { error: "Error al crear invitación" },
       { status: 500 }
     );
   }

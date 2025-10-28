@@ -7,6 +7,7 @@
 ---
 
 <a name="english"></a>
+
 ## 🇬🇧 English
 
 **Capture, explore and develop your ideas with the power of AI**
@@ -21,12 +22,14 @@ A minimalist application inspired by Einstein that helps you expand your ideas t
 ### ✨ Features
 
 #### 🎯 Capture and Expansion
+
 - **Minimalist input** to quickly capture ideas
 - **6 types of AI expansions**: First exploration, suggestions, questions, connections, use cases, challenges
 - **Interactive chat** to dive deeper into each aspect
 - **Executive summary** when closing ideas
 
 #### 🌍 Multilingual System (NEW! 🎉)
+
 - **Automatic language detection** from user preference
 - **Full support** for Spanish and English
 - **AI responds in your language** (prompts, expansions, analysis)
@@ -36,6 +39,7 @@ A minimalist application inspired by Einstein that helps you expand your ideas t
 - **Language switcher** in navbar (ES/EN buttons)
 
 #### 🏷️ Intelligent Tag System (V2.0)
+
 - **AI generates tags automatically** when creating ideas
 - **Smart reuse** of existing tags
 - **Tag filtering** in ideas gallery
@@ -44,6 +48,7 @@ A minimalist application inspired by Einstein that helps you expand your ideas t
 - **Updated tags** when closing ideas (analyzes complete development)
 
 #### 🕸️ Connection Visualization
+
 - **Interactive graph** showing relationships between ideas
 - **Links by shared tags** (thickness = quantity)
 - **Scalable nodes** (size = number of expansions)
@@ -51,18 +56,21 @@ A minimalist application inspired by Einstein that helps you expand your ideas t
 - **Direct navigation** with node click
 
 #### 📄 Complete Export
+
 - **Export to Markdown** (.md) for sharing
 - **Export to PDF** professional with pagination
 - **Includes everything**: title, content, tags, all expansions
 - **No cost** - client-side generation
 
 #### 📱 PWA - Offline Mode
+
 - **Installable as native app** on mobile and desktop
 - **Automatic service worker**
 - **Works offline** (upcoming: sync)
 - **Smart installation prompt**
 
 #### 🔐 Multi-User Authentication (V2.0)
+
 - **Complete user system** with Clerk
 - **Secure authentication** (email, Google, GitHub, etc.)
 - **Data isolation** per user
@@ -70,6 +78,7 @@ A minimalist application inspired by Einstein that helps you expand your ideas t
 - **Free plan**: 10,000 active users/month
 
 #### 🤝 Real-Time Collaboration (V2.5 - NEW! 🎉)
+
 - **Share ideas via email invitations** - Invite collaborators to develop ideas together
 - **Role-based permissions** - Owner vs Collaborator access control
 - **Real-time chat synchronization** - Server-Sent Events (SSE) for live updates
@@ -78,11 +87,13 @@ A minimalist application inspired by Einstein that helps you expand your ideas t
 - **Owner controls** - Only owners can edit, archive, or delete ideas
 
 #### 🔍 Search (Partial)
+
 - **Qdrant** vector database configured
 - Semantic search (embeddings temporarily disabled)
 - Text search in interface
 
 #### 📱 Mobile-First Design
+
 - Responsive interface adapted to all devices
 - PWA-ready (ready to convert to native app)
 - Minimalist theme inspired by Einstein
@@ -105,7 +116,7 @@ MastIdea
 - **Styling**: Tailwind CSS
 - **Database**: PostgreSQL + Prisma ORM
 - **Vector DB**: Qdrant (semantic search)
-- **AI**: 
+- **AI**:
   - OpenRouter API (LLM - Llama 3.1 8B free!)
   - Embeddings: To be implemented with free service
 - **Internationalization**: next-intl with cookie persistence
@@ -124,22 +135,26 @@ MastIdea
 #### Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone <repo-url>
 cd mastidea
 ```
 
 2. **Install dependencies**
+
 ```bash
 npm install
 ```
 
 3. **Configure environment variables**
+
 ```bash
 cp .env.example .env
 ```
 
 Edit `.env` and add your API keys:
+
 ```env
 # Clerk Authentication (REQUIRED for V2.0)
 # 1. Go to https://dashboard.clerk.com
@@ -156,21 +171,25 @@ OPENROUTER_MODEL="alibaba/tongyi-deepresearch-30b-a3b:free"
 ```
 
 4. **Start Docker containers**
+
 ```bash
 ./dev-start.sh
 ```
 
 This will start:
+
 - ✅ PostgreSQL on port 5432
 - ✅ Qdrant on port 6333 (dashboard: http://localhost:6333/dashboard)
 - ✅ Run Prisma migrations automatically
 
 5. **Start the Next.js application**
+
 ```bash
 npm run dev
 ```
 
 6. **Open your browser**
+
 ```
 http://localhost:3000
 ```
@@ -186,13 +205,16 @@ Ready! 🎉 You can start capturing ideas.
 ### 📖 Usage
 
 #### 1. Capture an Idea
+
 - Go to the home page
 - Write a descriptive title
 - Add details about your idea
 - Click "Explore this idea with AI"
 
 #### 2. Explore with AI
+
 AI will automatically generate an initial exploration. Then you can:
+
 - 💡 **Suggestions**: Get improvements and complements
 - ❓ **Questions**: Receive thought-provoking questions
 - 🔗 **Connections**: Discover relationships with other fields
@@ -200,10 +222,12 @@ AI will automatically generate an initial exploration. Then you can:
 - 🧩 **Challenges**: Analyze potential obstacles
 
 #### 3. Find Related Ideas
+
 - Each idea automatically shows similar ideas (semantic search)
 - Use search in "My Ideas" to find related concepts
 
 #### 4. Switch Languages
+
 - Click the ES/EN buttons in the navbar
 - The entire interface and AI responses will switch to your selected language
 - Your preference is saved in a cookie
@@ -232,6 +256,7 @@ Prompts are in `lib/i18n-server.ts` (bilingual) and `lib/openrouter.ts`. You can
 ### 🐳 Docker
 
 #### Development
+
 ```bash
 # Start databases
 docker-compose -f docker-compose.dev.yml up -d
@@ -244,6 +269,7 @@ docker-compose -f docker-compose.dev.yml down
 ```
 
 #### Production
+
 ```bash
 # Build and full deploy
 docker-compose up -d
@@ -315,11 +341,13 @@ docker-compose logs -f   # View logs in real time
 #### Vercel + Supabase/Neon (Recommended)
 
 1. **Deploy on Vercel**
+
 ```bash
 vercel
 ```
 
-2. **Database**: 
+2. **Database**:
+
    - [Neon](https://neon.tech/) (serverless PostgreSQL - free)
    - [Qdrant Cloud](https://cloud.qdrant.io/) (1GB free)
 
@@ -328,6 +356,7 @@ vercel
 #### Railway / Render
 
 Alternatives that include native Docker:
+
 - [Railway](https://railway.app/)
 - [Render](https://render.com/)
 
@@ -342,6 +371,7 @@ Alternatives that include native Docker:
 ### 🗺️ Roadmap
 
 #### Version 1.0 (Current)
+
 - ✅ CRUD for ideas
 - ✅ AI expansions (6 types)
 - ✅ Semantic search
@@ -349,6 +379,7 @@ Alternatives that include native Docker:
 - ✅ Responsive minimalist UI
 
 #### Version 2.0 (✅ COMPLETED - 85%)
+
 - [x] **Intelligent tag system with AI** ✅ 100%
   - [x] Tag model in database
   - [x] AI generates tags automatically (reuses existing)
@@ -407,6 +438,7 @@ Alternatives that include native Docker:
 - [ ] **Native app (React Native)** ⏳ 0%
 
 #### Version 2.5 (✅ COMPLETED - 100%)
+
 - [x] **Real-time collaboration system** ✅ 100%
   - [x] Prisma models: IdeaCollaborator and IdeaInvitation
   - [x] Email-based invitation system with Clerk user lookup
@@ -418,6 +450,7 @@ Alternatives that include native Docker:
   - [x] Bilingual support for collaboration features (ES/EN)
 
 #### Version 3.0 (Vision)
+
 - [ ] Advanced collaboration features (email notifications, webhooks)
 - [ ] AI with voice (idea dictation)
 - [ ] Integration with Notion/Obsidian
@@ -441,21 +474,24 @@ This project is born from the belief that we all have brilliant ideas, we just n
 ---
 
 <a name="español"></a>
+
 ## 🇪🇸 Español
 
-**Captura, explora y desarrolla tus ideas con el poder de la IA** 
+**Captura, explora y desarrolla tus ideas con el poder de la IA**
 
 Una aplicación minimalista inspirada en Einstein que te ayuda a expandir tus ideas mediante conversaciones inteligentes. Cada idea que captures se convierte en una exploración guiada por IA que te ayuda a ver nuevas perspectivas, conexiones y posibilidades.
 
 ### ✨ Características
 
 #### 🎯 Captura y Expansión
+
 - **Input minimalista** para capturar ideas rápidamente
 - **6 tipos de expansiones con IA**: Primera exploración, sugerencias, preguntas, conexiones, casos de uso, desafíos
 - **Chat interactivo** para profundizar en cada aspecto
 - **Resumen ejecutivo** al cerrar ideas
 
 #### 🌍 Sistema Multilenguaje (¡NUEVO! 🎉)
+
 - **Detección automática de idioma** desde preferencia del usuario
 - **Soporte completo** para español e inglés
 - **IA responde en tu idioma** (prompts, expansiones, análisis)
@@ -465,6 +501,7 @@ Una aplicación minimalista inspirada en Einstein que te ayuda a expandir tus id
 - **Selector de idioma** en navbar (botones ES/EN)
 
 #### 🏷️ Sistema de Tags Inteligente (V2.0)
+
 - **IA genera tags automáticamente** al crear ideas
 - **Reutilización inteligente** de tags existentes
 - **Filtrado por tags** en galería de ideas
@@ -473,6 +510,7 @@ Una aplicación minimalista inspirada en Einstein que te ayuda a expandir tus id
 - **Tags actualizados** al cerrar ideas (analiza desarrollo completo)
 
 #### 🕸️ Visualización de Conexiones
+
 - **Grafo interactivo** que muestra relaciones entre ideas
 - **Enlaces por tags compartidos** (grosor = cantidad)
 - **Nodos escalables** (tamaño = número de expansiones)
@@ -480,18 +518,21 @@ Una aplicación minimalista inspirada en Einstein que te ayuda a expandir tus id
 - **Navegación directa** con click en nodos
 
 #### 📄 Exportación Completa
+
 - **Exportar a Markdown** (.md) para compartir
 - **Exportar a PDF** profesional con paginación
 - **Incluye todo**: título, contenido, tags, todas las expansiones
 - **Sin costo** - generación del lado del cliente
 
 #### 📱 PWA - Modo Offline
+
 - **Instalable como app nativa** en móvil y escritorio
 - **Service Worker** automático
 - **Funciona offline** (próximo: sincronización)
 - **Prompt de instalación** inteligente
 
 #### 🔐 Autenticación Multi-Usuario (V2.0)
+
 - **Sistema completo de usuarios** con Clerk
 - **Autenticación segura** (email, Google, GitHub, etc.)
 - **Aislamiento de datos** por usuario
@@ -499,6 +540,7 @@ Una aplicación minimalista inspirada en Einstein que te ayuda a expandir tus id
 - **Plan gratuito**: 10,000 usuarios activos/mes
 
 #### 🤝 Colaboración en Tiempo Real (V2.5 - ¡NUEVO! 🎉)
+
 - **Comparte ideas con invitaciones por email** - Invita colaboradores a desarrollar ideas juntos
 - **Permisos basados en roles** - Control de acceso Owner vs Collaborator
 - **Sincronización de chat en tiempo real** - Server-Sent Events (SSE) para actualizaciones en vivo
@@ -507,11 +549,13 @@ Una aplicación minimalista inspirada en Einstein que te ayuda a expandir tus id
 - **Controles del dueño** - Solo los dueños pueden editar, archivar o eliminar ideas
 
 #### 🔍 Búsqueda (Parcial)
+
 - Base vectorial **Qdrant** configurada
 - Búsqueda semántica (embeddings deshabilitados temporalmente)
 - Búsqueda por texto en interfaz
 
 #### 📱 Diseño Mobile-First
+
 - Interfaz responsive adaptada a todos los dispositivos
 - PWA-ready (listo para convertir en app nativa)
 - Tema minimalista inspirado en Einstein
@@ -534,7 +578,7 @@ MastIdea
 - **Estilos**: Tailwind CSS
 - **Base de Datos**: PostgreSQL + Prisma ORM
 - **Vector DB**: Qdrant (búsqueda semántica)
-- **IA**: 
+- **IA**:
   - OpenRouter API (LLM - Llama 3.1 8B gratis!)
   - Embeddings: Por implementar con servicio gratuito
 - **Internacionalización**: next-intl con persistencia en cookies
@@ -553,22 +597,26 @@ MastIdea
 #### Instalación
 
 1. **Clona el repositorio**
+
 ```bash
 git clone <url-del-repo>
 cd mastidea
 ```
 
 2. **Instala dependencias**
+
 ```bash
 npm install
 ```
 
 3. **Configura variables de entorno**
+
 ```bash
 cp .env.example .env
 ```
 
 Edita `.env` y agrega tus API keys:
+
 ```env
 # Clerk Authentication (REQUERIDO para V2.0)
 # 1. Ve a https://dashboard.clerk.com
@@ -585,21 +633,25 @@ OPENROUTER_MODEL="alibaba/tongyi-deepresearch-30b-a3b:free"
 ```
 
 4. **Inicia los contenedores de Docker**
+
 ```bash
 ./dev-start.sh
 ```
 
 Esto iniciará:
+
 - ✅ PostgreSQL en puerto 5432
 - ✅ Qdrant en puerto 6333 (dashboard: http://localhost:6333/dashboard)
 - ✅ Ejecutará migraciones de Prisma automáticamente
 
 5. **Inicia la aplicación Next.js**
+
 ```bash
 npm run dev
 ```
 
 6. **Abre tu navegador**
+
 ```
 http://localhost:3000
 ```
@@ -615,13 +667,16 @@ http://localhost:3000
 ### 📖 Uso
 
 #### 1. Captura una Idea
+
 - Ve a la página principal
 - Escribe un título descriptivo
 - Añade detalles sobre tu idea
 - Haz clic en "Explorar esta idea con IA"
 
 #### 2. Explora con IA
+
 La IA generará automáticamente una primera exploración. Luego puedes:
+
 - 💡 **Sugerencias**: Obtén mejoras y complementos
 - ❓ **Preguntas**: Recibe preguntas provocadoras
 - 🔗 **Conexiones**: Descubre relaciones con otros campos
@@ -629,10 +684,12 @@ La IA generará automáticamente una primera exploración. Luego puedes:
 - 🧩 **Desafíos**: Analiza obstáculos potenciales
 
 #### 3. Encuentra Ideas Relacionadas
+
 - Cada idea muestra automáticamente ideas similares (búsqueda semántica)
 - Usa la búsqueda en "Mis Ideas" para encontrar conceptos relacionados
 
 #### 4. Cambia de Idioma
+
 - Haz clic en los botones ES/EN en la barra de navegación
 - Toda la interfaz y las respuestas de la IA cambiarán a tu idioma seleccionado
 - Tu preferencia se guarda en una cookie
@@ -661,6 +718,7 @@ Los prompts están en `lib/i18n-server.ts` (bilingües) y `lib/openrouter.ts`. P
 ### 🐳 Docker
 
 #### Desarrollo
+
 ```bash
 # Iniciar bases de datos
 docker-compose -f docker-compose.dev.yml up -d
@@ -673,6 +731,7 @@ docker-compose -f docker-compose.dev.yml down
 ```
 
 #### Producción
+
 ```bash
 # Build y deploy completo
 docker-compose up -d
@@ -748,11 +807,13 @@ docker-compose logs -f   # Ver logs en tiempo real
 #### Vercel + Supabase/Neon (Recomendado)
 
 1. **Deploy en Vercel**
+
 ```bash
 vercel
 ```
 
-2. **Base de datos**: 
+2. **Base de datos**:
+
    - [Neon](https://neon.tech/) (PostgreSQL serverless - gratis)
    - [Qdrant Cloud](https://cloud.qdrant.io/) (1GB gratis)
 
@@ -761,6 +822,7 @@ vercel
 #### Railway / Render
 
 Alternativas que incluyen Docker nativo:
+
 - [Railway](https://railway.app/)
 - [Render](https://render.com/)
 
@@ -769,6 +831,7 @@ Alternativas que incluyen Docker nativo:
 Genera una aplicación de escritorio nativa para Linux usando [Pake](https://github.com/tw93/Pake):
 
 **Requisitos previos (ArchLinux):**
+
 ```bash
 # Instalar dependencias del sistema
 sudo pacman -S webkit2gtk base-devel libayatana-appindicator
@@ -778,6 +841,7 @@ pnpm install -g pake-cli
 ```
 
 **Generar la app:**
+
 ```bash
 # Opción 1: AppImage (recomendado para Arch)
 ./build-desktop.sh
@@ -787,11 +851,13 @@ pnpm install -g pake-cli
 ```
 
 El script te guiará para elegir:
+
 - **Servidor local** (http://localhost:3000) - Para pruebas rápidas
 - **URL de producción** - Para la versión final
 - **Archivos estáticos** - Empaqueta el build de Next.js
 
 **Ejecutar la app:**
+
 ```bash
 # AppImage
 chmod +x ./desktop-builds/Mastidea*.AppImage
@@ -803,6 +869,7 @@ sudo pacman -U Mastidea*.pkg.tar.zst
 ```
 
 **Características de la app de escritorio:**
+
 - 📦 ~5MB de tamaño (vs ~150MB de Electron)
 - 🚀 Rendimiento nativo con Tauri
 - 🎨 Icono y nombre personalizados
@@ -821,6 +888,7 @@ sudo pacman -U Mastidea*.pkg.tar.zst
 ### 🗺️ Roadmap
 
 #### Versión 1.0 (Actual)
+
 - ✅ CRUD de ideas
 - ✅ Expansiones con IA (6 tipos)
 - ✅ Búsqueda semántica
@@ -828,6 +896,7 @@ sudo pacman -U Mastidea*.pkg.tar.zst
 - ✅ UI minimalista responsive
 
 #### Versión 2.0 (✅ COMPLETADA - 85%)
+
 - [x] **Sistema de Tags inteligente con IA** ✅ 100%
   - [x] Modelo Tag en base de datos
   - [x] IA genera tags automáticamente (reutiliza existentes)
@@ -886,6 +955,7 @@ sudo pacman -U Mastidea*.pkg.tar.zst
 - [ ] **App nativa (React Native)** ⏳ 0%
 
 #### Versión 2.5 (✅ COMPLETADA - 100%)
+
 - [x] **Sistema de colaboración en tiempo real** ✅ 100%
   - [x] Modelos Prisma: IdeaCollaborator e IdeaInvitation
   - [x] Sistema de invitaciones por email con búsqueda de usuarios Clerk
@@ -897,6 +967,7 @@ sudo pacman -U Mastidea*.pkg.tar.zst
   - [x] Soporte bilingüe para funciones de colaboración (ES/EN)
 
 #### Versión 3.0 (Visión)
+
 - [ ] Funciones avanzadas de colaboración (notificaciones por email, webhooks)
 - [ ] IA con voz (dictado de ideas)
 - [ ] Integración con Notion/Obsidian
@@ -921,4 +992,4 @@ Este proyecto nace de la creencia de que todos tenemos ideas brillantes, solo ne
 
 **Made with 🧠 and ❤️**
 
-*"Not everything that counts can be counted, and not everything that can be counted counts." - Einstein*
+_"Not everything that counts can be counted, and not everything that can be counted counts." - Einstein_

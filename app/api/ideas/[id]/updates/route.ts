@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
 
 /**
  * GET /api/ideas/[id]/updates - Server-Sent Events para actualizaciones en tiempo real
@@ -12,7 +12,7 @@ export async function GET(
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
   const { id } = await params;
@@ -28,7 +28,7 @@ export async function GET(
   });
 
   if (!idea || (idea.userId !== userId && idea.collaborators.length === 0)) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
   // Crear stream de Server-Sent Events
@@ -37,7 +37,9 @@ export async function GET(
       const encoder = new TextEncoder();
 
       // Enviar mensaje inicial
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'connected' })}\n\n`));
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ type: "connected" })}\n\n`)
+      );
 
       // Configurar intervalo para verificar actualizaciones (polling cada 5 segundos)
       let lastCheck = new Date();
@@ -52,27 +54,29 @@ export async function GET(
               },
             },
             orderBy: {
-              createdAt: 'asc',
+              createdAt: "asc",
             },
           });
 
           if (newExpansions.length > 0) {
             // Enviar notificación de nuevas expansiones
             const message = {
-              type: 'new_expansions',
+              type: "new_expansions",
               count: newExpansions.length,
               expansions: newExpansions,
             };
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(message)}\n\n`));
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify(message)}\n\n`)
+            );
             lastCheck = new Date();
           }
         } catch (error) {
-          console.error('Error checking for updates:', error);
+          console.error("Error checking for updates:", error);
         }
       }, 5000);
 
       // Limpiar cuando se cierra la conexión
-      request.signal.addEventListener('abort', () => {
+      request.signal.addEventListener("abort", () => {
         clearInterval(intervalId);
         controller.close();
       });
@@ -81,9 +85,9 @@ export async function GET(
 
   return new NextResponse(stream, {
     headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
     },
   });
 }

@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { qdrantService } from '@/lib/qdrant';
-import { auth } from '@clerk/nextjs/server';
-import { getIdeaWithAccess, isIdeaOwner } from '@/lib/ideaPermissions';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { qdrantService } from "@/lib/qdrant";
+import { auth } from "@clerk/nextjs/server";
+import { getIdeaWithAccess, isIdeaOwner } from "@/lib/ideaPermissions";
 
 /**
  * GET /api/ideas/[id] - Obtiene una idea por ID
@@ -14,17 +14,17 @@ export async function GET(
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
     const { id } = await params;
-    
+
     // Usar la función de permisos que incluye colaboradores
     const idea = await getIdeaWithAccess(id, userId);
 
     if (!idea || idea.deletedAt) {
       return NextResponse.json(
-        { error: 'Idea no encontrada' },
+        { error: "Idea no encontrada" },
         { status: 404 }
       );
     }
@@ -45,7 +45,7 @@ export async function GET(
       );
       similarIdeas = similar;
     } catch (error) {
-      console.error('Error buscando ideas similares:', error);
+      console.error("Error buscando ideas similares:", error);
     }
 
     return NextResponse.json({
@@ -53,9 +53,9 @@ export async function GET(
       similarIdeas,
     });
   } catch (error) {
-    console.error('Error obteniendo idea:', error);
+    console.error("Error obteniendo idea:", error);
     return NextResponse.json(
-      { error: 'Error al obtener la idea' },
+      { error: "Error al obtener la idea" },
       { status: 500 }
     );
   }
@@ -71,15 +71,15 @@ export async function DELETE(
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
     const { id } = await params;
-    
+
     // Solo el propietario puede eliminar
     if (!(await isIdeaOwner(id, userId))) {
       return NextResponse.json(
-        { error: 'Solo el propietario puede eliminar la idea' },
+        { error: "Solo el propietario puede eliminar la idea" },
         { status: 403 }
       );
     }
@@ -89,15 +89,18 @@ export async function DELETE(
       where: { id },
       data: {
         deletedAt: new Date(),
-        status: 'ARCHIVED',
+        status: "ARCHIVED",
       },
     });
 
-    return NextResponse.json({ success: true, message: 'Idea movida a papelera' });
+    return NextResponse.json({
+      success: true,
+      message: "Idea movida a papelera",
+    });
   } catch (error) {
-    console.error('Error moviendo idea a papelera:', error);
+    console.error("Error moviendo idea a papelera:", error);
     return NextResponse.json(
-      { error: 'Error al mover la idea a papelera' },
+      { error: "Error al mover la idea a papelera" },
       { status: 500 }
     );
   }
@@ -113,7 +116,7 @@ export async function PATCH(
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -123,7 +126,7 @@ export async function PATCH(
     // Solo el propietario puede cambiar el estado
     if (!(await isIdeaOwner(id, userId))) {
       return NextResponse.json(
-        { error: 'Solo el propietario puede cambiar el estado de la idea' },
+        { error: "Solo el propietario puede cambiar el estado de la idea" },
         { status: 403 }
       );
     }
@@ -133,7 +136,7 @@ export async function PATCH(
       data: { status },
       include: {
         expansions: {
-          orderBy: { createdAt: 'asc' },
+          orderBy: { createdAt: "asc" },
         },
         tags: {
           include: {
@@ -145,9 +148,9 @@ export async function PATCH(
 
     return NextResponse.json(idea);
   } catch (error) {
-    console.error('Error actualizando idea:', error);
+    console.error("Error actualizando idea:", error);
     return NextResponse.json(
-      { error: 'Error al actualizar la idea' },
+      { error: "Error al actualizar la idea" },
       { status: 500 }
     );
   }

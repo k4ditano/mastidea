@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { openRouterClient } from '@/lib/openrouter';
-import { auth } from '@clerk/nextjs/server';
-import { z } from 'zod';
-import { hasIdeaAccess } from '@/lib/ideaPermissions';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { openRouterClient } from "@/lib/openrouter";
+import { auth } from "@clerk/nextjs/server";
+import { z } from "zod";
+import { hasIdeaAccess } from "@/lib/ideaPermissions";
 
 const chatSchema = z.object({
-  message: z.string().min(1, 'El mensaje es requerido'),
+  message: z.string().min(1, "El mensaje es requerido"),
 });
 
 /**
@@ -19,7 +19,7 @@ export async function POST(
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -29,7 +29,7 @@ export async function POST(
     // Verificar acceso (propietario o colaborador)
     if (!(await hasIdeaAccess(id, userId))) {
       return NextResponse.json(
-        { error: 'No tienes acceso a esta idea' },
+        { error: "No tienes acceso a esta idea" },
         { status: 403 }
       );
     }
@@ -39,7 +39,7 @@ export async function POST(
       where: { id },
       include: {
         expansions: {
-          orderBy: { createdAt: 'asc' },
+          orderBy: { createdAt: "asc" },
           take: 5, // Solo las últimas 5 para contexto
         },
       },
@@ -47,29 +47,34 @@ export async function POST(
 
     if (!idea) {
       return NextResponse.json(
-        { error: 'Idea no encontrada' },
+        { error: "Idea no encontrada" },
         { status: 404 }
       );
     }
 
     // Crear contexto de conversación con las últimas 3 interacciones
     const recentExpansions = idea.expansions.slice(-3); // Solo las últimas 3
-    let conversationContext = '';
-    
+    let conversationContext = "";
+
     if (recentExpansions.length > 0) {
-      conversationContext = '\n\nConversación reciente:';
-      recentExpansions.forEach((exp: { userMessage?: string | null; content: string }) => {
-        if (exp.userMessage) {
-          conversationContext += `\nUsuario: ${exp.userMessage}`;
+      conversationContext = "\n\nConversación reciente:";
+      recentExpansions.forEach(
+        (exp: { userMessage?: string | null; content: string }) => {
+          if (exp.userMessage) {
+            conversationContext += `\nUsuario: ${exp.userMessage}`;
+          }
+          conversationContext += `\nEinstein: ${exp.content.substring(
+            0,
+            300
+          )}...`;
         }
-        conversationContext += `\nEinstein: ${exp.content.substring(0, 300)}...`;
-      });
+      );
     }
 
     // Generar respuesta personalizada
     const response = await openRouterClient.chat([
       {
-        role: 'system',
+        role: "system",
         content: `Eres Einstein en modo ejecutivo: inteligente pero DIRECTO.
 
 La persona trabaja en:
@@ -98,12 +103,12 @@ FORMATO:
 - URLs directas
 - Máximo 4-5 párrafos cortos y concretos
 
-Responde directo a lo que preguntan.`
+Responde directo a lo que preguntan.`,
       },
       {
-        role: 'user',
-        content: message
-      }
+        role: "user",
+        content: message,
+      },
     ]);
 
     // Guardar la expansión como tipo SUGGESTION (conversación)
@@ -112,7 +117,7 @@ Responde directo a lo que preguntan.`
         ideaId: idea.id,
         content: response,
         userMessage: message, // Guardar el mensaje del usuario
-        type: 'SUGGESTION',
+        type: "SUGGESTION",
       },
     });
 
@@ -120,14 +125,14 @@ Responde directo a lo que preguntan.`
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Datos inválidos', details: error.issues },
+        { error: "Datos inválidos", details: error.issues },
         { status: 400 }
       );
     }
 
-    console.error('Error en chat:', error);
+    console.error("Error en chat:", error);
     return NextResponse.json(
-      { error: 'Error al procesar el mensaje' },
+      { error: "Error al procesar el mensaje" },
       { status: 500 }
     );
   }

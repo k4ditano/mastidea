@@ -1,14 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { IdeaCollaborator } from '@/types';
+import { useState, useEffect } from "react";
+import { IdeaCollaborator } from "@/types";
 
 interface CollaboratorListProps {
   ideaId: string;
   isOwner: boolean;
 }
 
-export default function CollaboratorList({ ideaId, isOwner }: CollaboratorListProps) {
+export default function CollaboratorList({
+  ideaId,
+  isOwner,
+}: CollaboratorListProps) {
   const [collaborators, setCollaborators] = useState<IdeaCollaborator[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,40 +28,44 @@ export default function CollaboratorList({ ideaId, isOwner }: CollaboratorListPr
         setCollaborators(data);
       }
     } catch (error) {
-      console.error('Error fetching collaborators:', error);
+      console.error("Error fetching collaborators:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleRemoveCollaborator = async (collaboratorId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este colaborador?')) {
+    if (!confirm("¿Estás seguro de que quieres eliminar este colaborador?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/ideas/${ideaId}/collaborators`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ collaboratorId }),
       });
 
       if (response.ok) {
-        setCollaborators(collaborators.filter(c => c.id !== collaboratorId));
+        setCollaborators(collaborators.filter((c) => c.id !== collaboratorId));
       } else {
         const error = await response.json();
-        alert(error.error || 'Error al eliminar colaborador');
+        alert(error.error || "Error al eliminar colaborador");
       }
     } catch (error) {
-      console.error('Error removing collaborator:', error);
-      alert('Error al eliminar colaborador');
+      console.error("Error removing collaborator:", error);
+      alert("Error al eliminar colaborador");
     }
   };
 
   if (loading) {
-    return <div className="text-gray-500 dark:text-gray-400">Cargando colaboradores...</div>;
+    return (
+      <div className="text-gray-500 dark:text-gray-400">
+        Cargando colaboradores...
+      </div>
+    );
   }
 
   if (collaborators.length === 0) {
@@ -89,10 +96,11 @@ export default function CollaboratorList({ ideaId, isOwner }: CollaboratorListPr
                   {collaborator.userEmail}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Desde {new Date(collaborator.addedAt).toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
+                  Desde{" "}
+                  {new Date(collaborator.addedAt).toLocaleDateString("es-ES", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
                   })}
                 </p>
               </div>
@@ -103,8 +111,18 @@ export default function CollaboratorList({ ideaId, isOwner }: CollaboratorListPr
                 className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-2"
                 title="Eliminar colaborador"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
               </button>
             )}
