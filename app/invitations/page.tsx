@@ -120,21 +120,21 @@ export default function InvitationsPage() {
 
         {/* Filters */}
         <div className="flex gap-2 mb-6 justify-center flex-wrap">
-          {(["all", "pending", "accepted", "rejected"] as InvitationFilter[]).map(
-            (f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filter === f
-                    ? "bg-einstein-600 text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
-                }`}
-              >
-                {t(`filter${f.charAt(0).toUpperCase() + f.slice(1)}`)}
-              </button>
-            )
-          )}
+          {(
+            ["all", "pending", "accepted", "rejected"] as InvitationFilter[]
+          ).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                filter === f
+                  ? "bg-einstein-600 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
+              }`}
+            >
+              {t(`filter${f.charAt(0).toUpperCase() + f.slice(1)}`)}
+            </button>
+          ))}
         </div>
 
         {/* Invitations List */}
