@@ -12,6 +12,7 @@ import TagEditor from "@/components/TagEditor";
 import SuccessScore from "@/components/SuccessScore";
 import IdeaActions from "@/components/IdeaActions";
 import CollaboratorList from "@/components/CollaboratorList";
+import PendingInvitations from "@/components/PendingInvitations";
 import { Idea, ExpansionType, EXPANSION_TYPE_LABELS } from "@/types";
 import {
   FaArrowLeft,
@@ -359,6 +360,11 @@ export default function IdeaPage() {
             <CollaboratorList ideaId={idea.id} isOwner={isOwner} />
           </div>
         ) : null}
+
+        {/* Pending Invitations - Only visible for owner */}
+        <div className="mb-4">
+          <PendingInvitations ideaId={idea.id} isOwner={isOwner} />
+        </div>
 
         {/* Chat-like Interface */}
         <div className="space-y-4 pb-64">

@@ -4,6 +4,7 @@ import { openRouterClient } from '@/lib/openrouter';
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { getLocale } from '@/lib/i18n-server';
+import { hasIdeaAccess } from '@/lib/ideaPermissions';
 
 const expandIdeaSchema = z.object({
   type: z.enum(['SUGGESTION', 'QUESTION', 'CONNECTION', 'USE_CASE', 'CHALLENGE']),
@@ -26,9 +27,17 @@ export async function POST(
     const body = await request.json();
     const { type } = expandIdeaSchema.parse(body);
 
-    // Obtener la idea con sus expansiones (verificando que pertenezca al usuario)
-    const idea = await prisma.idea.findFirst({
-      where: { id, userId },
+    // Verificar acceso (propietario o colaborador)
+    if (!(await hasIdeaAccess(id, userId))) {
+      return NextResponse.json(
+        { error: "No tienes acceso a esta idea" },
+        { status: 403 }
+      );
+    }
+
+    // Obtener la idea con sus expansiones
+    const idea = await prisma.idea.findUnique({
+      where: { id },
       include: {
         expansions: {
           orderBy: { createdAt: 'asc' },

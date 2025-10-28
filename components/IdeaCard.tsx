@@ -4,10 +4,11 @@ import { Idea } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 import Link from 'next/link';
-import { FaChevronRight, FaComments, FaCheckCircle, FaStar, FaRobot, FaExclamationTriangle } from 'react-icons/fa';
+import { FaChevronRight, FaComments, FaCheckCircle, FaStar, FaRobot, FaExclamationTriangle, FaUsers } from 'react-icons/fa';
 import TagBadge from './TagBadge';
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useUser } from '@clerk/nextjs';
 
 function getDateLocale(locale: string) {
   return locale === 'es' ? es : enUS;
@@ -28,10 +29,16 @@ interface IdeaCardProps {
 
 export default function IdeaCard({ idea, onTagClick }: IdeaCardProps) {
   const tIdea = useTranslations('idea');
+  const tCollab = useTranslations('collaboration');
+  const { user } = useUser();
   const expansionCount = idea.expansions?.length || 0;
   const [aiStatus, setAiStatus] = useState(idea.aiProcessingStatus || 'COMPLETED');
   const locale = getCurrentLocale();
   const dateLocale = getDateLocale(locale);
+
+  // Determinar si el usuario es colaborador (no propietario)
+  const isCollaborator = user && idea.userId !== user.id && 
+    idea.collaborators?.some((c) => c.userId === user.id);
 
   // Polling para actualizar el estado de IA
   useEffect(() => {
@@ -91,6 +98,16 @@ export default function IdeaCard({ idea, onTagClick }: IdeaCardProps) {
                 <FaExclamationTriangle className="text-yellow-600 text-sm" />
                 <span className="text-xs font-semibold text-yellow-700 uppercase tracking-wide">
                   {locale === 'es' ? 'Error en IA' : 'AI Error'}
+                </span>
+              </div>
+            )}
+
+            {/* Badge de Colaborador */}
+            {isCollaborator && (
+              <div className="flex items-center space-x-2 mb-2">
+                <FaUsers className="text-blue-600 text-sm" />
+                <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">
+                  {tCollab('collaborator')}
                 </span>
               </div>
             )}

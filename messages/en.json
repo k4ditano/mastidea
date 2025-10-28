@@ -241,7 +241,12 @@
     "collaborator": "Collaborator",
     "pendingInvitations": "Pending invitations",
     "noPendingInvitations": "You have no pending invitations",
-    "viewInvitations": "View invitations"
+    "viewInvitations": "View invitations",
+    "sentOn": "Sent on",
+    "cancelInvitation": "Cancel invitation",
+    "confirmCancelInvitation": "Are you sure you want to cancel this invitation?",
+    "errorCanceling": "Error canceling invitation",
+    "invitationsPendingNote": "These invitations are waiting for a response. You can cancel them at any time."
   },
   "invitations": {
     "title": "My Invitations",

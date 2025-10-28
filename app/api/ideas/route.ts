@@ -243,7 +243,7 @@ async function processIdeaInBackground(
 }
 
 /**
- * GET /api/ideas - Obtiene todas las ideas del usuario
+ * GET /api/ideas - Obtiene todas las ideas del usuario (propias y colaborativas)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -261,16 +261,33 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Construir filtro de where
+    // Construir filtro de where para ideas propias
     interface WhereClause {
-      userId: string;
       deletedAt: null;
       status?: 'ACTIVE' | 'ARCHIVED' | 'COMPLETED';
+      OR?: Array<{
+        userId: string;
+      } | {
+        collaborators: {
+          some: {
+            userId: string;
+          };
+        };
+      }>;
     }
     
     const whereClause: WhereClause = {
-      userId,
       deletedAt: null, // Siempre excluir ideas en papelera
+      OR: [
+        { userId }, // Ideas propias
+        { 
+          collaborators: {
+            some: {
+              userId, // Ideas donde es colaborador
+            },
+          },
+        },
+      ],
     };
 
     // Solo agregar filtro de status si se especifica
@@ -289,6 +306,7 @@ export async function GET(request: NextRequest) {
             tag: true,
           },
         },
+        collaborators: true, // Incluir colaboradores para mostrar badges
       },
       orderBy: { createdAt: 'desc' },
       take: limit,
