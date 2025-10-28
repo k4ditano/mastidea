@@ -17,6 +17,7 @@
     "ideas": "Ideas",
     "graph": "Grafo",
     "tags": "Tags",
+    "invitations": "Invitaciones",
     "signIn": "Iniciar sesión",
     "signOut": "Cerrar sesión"
   },
@@ -241,6 +242,26 @@
     "pendingInvitations": "Invitaciones pendientes",
     "noPendingInvitations": "No tienes invitaciones pendientes",
     "viewInvitations": "Ver invitaciones"
+  },
+  "invitations": {
+    "title": "Mis Invitaciones",
+    "subtitle": "Gestiona las invitaciones a colaborar en ideas",
+    "loading": "Cargando invitaciones...",
+    "noInvitations": "No hay invitaciones",
+    "filterAll": "Todas",
+    "filterPending": "Pendientes",
+    "filterAccepted": "Aceptadas",
+    "filterRejected": "Rechazadas",
+    "statusPending": "Pendiente",
+    "statusAccepted": "Aceptada",
+    "statusRejected": "Rechazada",
+    "invitedBy": "Invitado por",
+    "unknownIdea": "Idea desconocida",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "viewIdea": "Ver idea",
+    "rejectedOn": "Rechazada el",
+    "errorResponding": "Error al responder a la invitación"
   },
   "errors": {
     "generic": "Ha ocurrido un error",

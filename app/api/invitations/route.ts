@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/invitations - Obtener invitaciones pendientes del usuario actual
-export async function GET() {
+// GET /api/invitations - Obtener invitaciones del usuario actual
+// Soporta ?all=true para obtener todas las invitaciones (no solo pendientes)
+export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
 
@@ -23,11 +24,15 @@ export async function GET() {
       );
     }
 
-    // Buscar invitaciones pendientes por email
+    // Verificar si se solicitan todas las invitaciones
+    const { searchParams } = new URL(request.url);
+    const all = searchParams.get("all") === "true";
+
+    // Buscar invitaciones por email
     const invitations = await prisma.ideaInvitation.findMany({
       where: {
         invitedEmail: userEmail,
-        status: "PENDING",
+        ...(all ? {} : { status: "PENDING" }), // Filtrar solo pendientes si no se pide "all"
       },
       include: {
         idea: {

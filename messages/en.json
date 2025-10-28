@@ -17,6 +17,7 @@
     "ideas": "Ideas",
     "graph": "Graph",
     "tags": "Tags",
+    "invitations": "Invitations",
     "signIn": "Sign in",
     "signOut": "Sign out"
   },
@@ -241,6 +242,26 @@
     "pendingInvitations": "Pending invitations",
     "noPendingInvitations": "You have no pending invitations",
     "viewInvitations": "View invitations"
+  },
+  "invitations": {
+    "title": "My Invitations",
+    "subtitle": "Manage invitations to collaborate on ideas",
+    "loading": "Loading invitations...",
+    "noInvitations": "No invitations",
+    "filterAll": "All",
+    "filterPending": "Pending",
+    "filterAccepted": "Accepted",
+    "filterRejected": "Rejected",
+    "statusPending": "Pending",
+    "statusAccepted": "Accepted",
+    "statusRejected": "Rejected",
+    "invitedBy": "Invited by",
+    "unknownIdea": "Unknown idea",
+    "accept": "Accept",
+    "reject": "Reject",
+    "viewIdea": "View idea",
+    "rejectedOn": "Rejected on",
+    "errorResponding": "Error responding to invitation"
   },
   "errors": {
     "generic": "An error occurred",

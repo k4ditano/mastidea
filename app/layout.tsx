@@ -6,6 +6,7 @@ import { getLocale, getMessages } from 'next-intl/server';
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import InstallPWA from "@/components/InstallPWA";
+import InvitationNotifications from "@/components/InvitationNotifications";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,6 +54,7 @@ export default async function RootLayout({
             <Navbar />
             {children}
             <InstallPWA />
+            <InvitationNotifications />
           </NextIntlClientProvider>
         </body>
       </html>
