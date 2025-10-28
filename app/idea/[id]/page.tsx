@@ -538,44 +538,47 @@ export default function IdeaPage() {
                 </div>
 
                 {/* Quick action badges */}
-                <div className="flex justify-center flex-wrap gap-2 mb-3">
-                  {[
-                    {
-                      type: "SUGGESTION" as ExpansionType,
-                      emoji: "💡",
-                      label: t("suggestions"),
-                    },
-                    {
-                      type: "QUESTION" as ExpansionType,
-                      emoji: "❓",
-                      label: t("questions"),
-                    },
-                    {
-                      type: "CONNECTION" as ExpansionType,
-                      emoji: "🔗",
-                      label: t("connections"),
-                    },
-                    {
-                      type: "USE_CASE" as ExpansionType,
-                      emoji: "🎯",
-                      label: t("useCases"),
-                    },
-                    {
-                      type: "CHALLENGE" as ExpansionType,
-                      emoji: "⚡",
-                      label: t("challenges"),
-                    },
-                  ].map((action) => (
-                    <button
-                      key={action.type}
-                      onClick={() => handleExpand(action.type)}
-                      disabled={expanding}
-                      className="group relative inline-flex items-center space-x-1.5 px-4 py-2 bg-white hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-800 text-gray-700 hover:text-white rounded-full text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-gray-200 hover:border-transparent shadow-sm hover:shadow-md transform hover:scale-105"
-                    >
-                      <span className="text-base">{action.emoji}</span>
-                      <span className="font-semibold">{action.label}</span>
-                    </button>
-                  ))}
+                <div className="mb-3 overflow-x-auto scrollbar-hide">
+                  <div className="flex justify-center sm:justify-center gap-2 min-w-max px-4 sm:px-0 sm:flex-wrap">
+                    {[
+                      {
+                        type: "SUGGESTION" as ExpansionType,
+                        emoji: "💡",
+                        label: t("suggestions"),
+                      },
+                      {
+                        type: "QUESTION" as ExpansionType,
+                        emoji: "❓",
+                        label: t("questions"),
+                      },
+                      {
+                        type: "CONNECTION" as ExpansionType,
+                        emoji: "🔗",
+                        label: t("connections"),
+                      },
+                      {
+                        type: "USE_CASE" as ExpansionType,
+                        emoji: "🎯",
+                        label: t("useCases"),
+                      },
+                      {
+                        type: "CHALLENGE" as ExpansionType,
+                        emoji: "⚡",
+                        label: t("challenges"),
+                      },
+                    ].map((action) => (
+                      <button
+                        key={action.type}
+                        onClick={() => handleExpand(action.type)}
+                        disabled={expanding}
+                        title={action.label}
+                        className="group relative inline-flex items-center justify-center sm:space-x-1.5 px-3 sm:px-4 py-2 bg-white hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-800 text-gray-700 hover:text-white rounded-full text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-gray-200 hover:border-transparent shadow-sm hover:shadow-md transform hover:scale-105"
+                      >
+                        <span className="text-lg sm:text-base">{action.emoji}</span>
+                        <span className="hidden sm:inline font-semibold">{action.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Main input - larger and prominent */}
