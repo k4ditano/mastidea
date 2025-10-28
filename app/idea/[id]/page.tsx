@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useUser } from "@clerk/nextjs";
@@ -55,6 +55,14 @@ export default function IdeaPage() {
   const [summarizing, setSummarizing] = useState(false);
   const [aiProcessing, setAiProcessing] = useState(false);
 
+  // Ref para auto-scroll al final del chat
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Función para hacer scroll al final
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   // Determinar si el usuario actual es el propietario
   const isOwner = idea && user ? idea.userId === user.id : false;
 
@@ -95,6 +103,13 @@ export default function IdeaPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
+
+  // Auto-scroll cuando cambian las expansiones
+  useEffect(() => {
+    if (idea?.expansions && idea.expansions.length > 0) {
+      scrollToBottom();
+    }
+  }, [idea?.expansions?.length]);
 
   // Polling para estado de IA
   useEffect(() => {
@@ -139,6 +154,8 @@ export default function IdeaPage() {
       }
 
       await loadIdea();
+      // Scroll al final después de recibir la expansión
+      setTimeout(() => scrollToBottom(), 100);
     } catch (error) {
       console.error("Error:", error);
       alert(t("errorExpanding"));
@@ -164,6 +181,8 @@ export default function IdeaPage() {
       }
 
       await loadIdea();
+      // Scroll al final después de recibir la respuesta
+      setTimeout(() => scrollToBottom(), 100);
     } catch (error) {
       console.error("Error:", error);
       alert(t("errorReplying"));
@@ -523,6 +542,9 @@ export default function IdeaPage() {
                 )}
               </div>
             ))}
+
+          {/* Invisible element for auto-scroll */}
+          <div ref={chatEndRef} />
 
           {/* Action Buttons - Sticky at bottom - Only show if ACTIVE */}
           {idea.status === "ACTIVE" && (

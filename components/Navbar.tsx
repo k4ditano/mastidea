@@ -50,21 +50,21 @@ export default function Navbar() {
 
   return (
     <nav className="border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 group">
+          <Link href="/" className="flex items-center space-x-2 group shrink-0">
             <div className="relative">
-              <FaBrain className="text-einstein-600 text-2xl group-hover:text-einstein-500 transition-colors" />
+              <FaBrain className="text-einstein-600 text-xl sm:text-2xl group-hover:text-einstein-500 transition-colors" />
               <span className="absolute -top-1 -right-1 text-xs">²</span>
             </div>
-            <span className="font-bold text-xl text-gray-900">
+            <span className="hidden sm:inline font-bold text-xl text-gray-900">
               Mast<span className="text-einstein-600">Idea</span>
             </span>
           </Link>
 
           {/* Navigation */}
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-0.5 sm:space-x-1 overflow-x-auto scrollbar-hide">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -73,9 +73,10 @@ export default function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  title={item.label}
                   className={`
-                    flex items-center space-x-2 px-4 py-2 rounded-lg
-                    transition-all duration-200
+                    flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg
+                    transition-all duration-200 shrink-0
                     ${
                       isActive
                         ? "bg-einstein-100 text-einstein-700 font-medium"
@@ -83,8 +84,8 @@ export default function Navbar() {
                     }
                   `}
                 >
-                  <Icon className="text-lg" />
-                  <span className="hidden sm:inline">{item.label}</span>
+                  <Icon className="text-base sm:text-lg" />
+                  <span className="hidden sm:inline text-sm">{item.label}</span>
                 </Link>
               );
             })}
@@ -93,9 +94,10 @@ export default function Navbar() {
             {isSignedIn && (
               <Link
                 href="/invitations"
+                title={t("invitations")}
                 className={`
-                  relative flex items-center space-x-2 px-4 py-2 rounded-lg
-                  transition-all duration-200
+                  relative flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg
+                  transition-all duration-200 shrink-0
                   ${
                     pathname === "/invitations"
                       ? "bg-einstein-100 text-einstein-700 font-medium"
@@ -103,29 +105,29 @@ export default function Navbar() {
                   }
                 `}
               >
-                <FaBell className="text-lg" />
+                <FaBell className="text-base sm:text-lg" />
                 {pendingCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {pendingCount > 9 ? "9+" : pendingCount}
                   </span>
                 )}
-                <span className="hidden sm:inline">{t("invitations")}</span>
+                <span className="hidden sm:inline text-sm">{t("invitations")}</span>
               </Link>
             )}
 
             {/* Language Switcher */}
-            <div className="ml-2">
+            <div className="ml-1 sm:ml-2 shrink-0">
               <LanguageSwitcher />
             </div>
 
             {/* User Button */}
-            <div className="ml-4 flex items-center">
+            <div className="ml-2 sm:ml-4 flex items-center shrink-0">
               {isSignedIn ? (
                 <UserButton afterSignOutUrl="/" />
               ) : (
                 <Link
                   href="/sign-in"
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                  className="px-3 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-xs sm:text-sm font-medium"
                 >
                   {t("signIn")}
                 </Link>
