@@ -69,6 +69,14 @@ A minimalist application inspired by Einstein that helps you expand your ideas t
 - **Automatic session management**
 - **Free plan**: 10,000 active users/month
 
+#### 🤝 Real-Time Collaboration (V2.5 - NEW! 🎉)
+- **Share ideas via email invitations** - Invite collaborators to develop ideas together
+- **Role-based permissions** - Owner vs Collaborator access control
+- **Real-time chat synchronization** - Server-Sent Events (SSE) for live updates
+- **Invitation management** - Accept/reject invites with email notifications
+- **Collaborative expansions** - All collaborators can chat and expand ideas
+- **Owner controls** - Only owners can edit, archive, or delete ideas
+
 #### 🔍 Search (Partial)
 - **Qdrant** vector database configured
 - Semantic search (embeddings temporarily disabled)
@@ -398,8 +406,19 @@ Alternatives that include native Docker:
 - [ ] **Publicly share ideas** ⏳ 0%
 - [ ] **Native app (React Native)** ⏳ 0%
 
+#### Version 2.5 (✅ COMPLETED - 100%)
+- [x] **Real-time collaboration system** ✅ 100%
+  - [x] Prisma models: IdeaCollaborator and IdeaInvitation
+  - [x] Email-based invitation system with Clerk user lookup
+  - [x] API endpoints: /api/invitations (GET, POST), /api/invitations/[id]/respond
+  - [x] Permission helpers: hasIdeaAccess(), isIdeaOwner(), getIdeaWithAccess()
+  - [x] Server-Sent Events (SSE) for real-time chat updates
+  - [x] UI components: InvitationNotifications, CollaboratorInvite, CollaboratorList
+  - [x] Role-based access control (Owner vs Collaborator)
+  - [x] Bilingual support for collaboration features (ES/EN)
+
 #### Version 3.0 (Vision)
-- [ ] Real-time collaboration
+- [ ] Advanced collaboration features (email notifications, webhooks)
 - [ ] AI with voice (idea dictation)
 - [ ] Integration with Notion/Obsidian
 - [ ] Creative pattern analysis
@@ -478,6 +497,14 @@ Una aplicación minimalista inspirada en Einstein que te ayuda a expandir tus id
 - **Aislamiento de datos** por usuario
 - **Gestión de sesiones** automática
 - **Plan gratuito**: 10,000 usuarios activos/mes
+
+#### 🤝 Colaboración en Tiempo Real (V2.5 - ¡NUEVO! 🎉)
+- **Comparte ideas con invitaciones por email** - Invita colaboradores a desarrollar ideas juntos
+- **Permisos basados en roles** - Control de acceso Owner vs Collaborator
+- **Sincronización de chat en tiempo real** - Server-Sent Events (SSE) para actualizaciones en vivo
+- **Gestión de invitaciones** - Acepta/rechaza invites con notificaciones por email
+- **Expansiones colaborativas** - Todos los colaboradores pueden chatear y expandir ideas
+- **Controles del dueño** - Solo los dueños pueden editar, archivar o eliminar ideas
 
 #### 🔍 Búsqueda (Parcial)
 - Base vectorial **Qdrant** configurada
@@ -858,8 +885,19 @@ sudo pacman -U Mastidea*.pkg.tar.zst
 - [ ] **Compartir ideas públicamente** ⏳ 0%
 - [ ] **App nativa (React Native)** ⏳ 0%
 
+#### Versión 2.5 (✅ COMPLETADA - 100%)
+- [x] **Sistema de colaboración en tiempo real** ✅ 100%
+  - [x] Modelos Prisma: IdeaCollaborator e IdeaInvitation
+  - [x] Sistema de invitaciones por email con búsqueda de usuarios Clerk
+  - [x] Endpoints API: /api/invitations (GET, POST), /api/invitations/[id]/respond
+  - [x] Helpers de permisos: hasIdeaAccess(), isIdeaOwner(), getIdeaWithAccess()
+  - [x] Server-Sent Events (SSE) para actualizaciones de chat en tiempo real
+  - [x] Componentes UI: InvitationNotifications, CollaboratorInvite, CollaboratorList
+  - [x] Control de acceso basado en roles (Owner vs Collaborator)
+  - [x] Soporte bilingüe para funciones de colaboración (ES/EN)
+
 #### Versión 3.0 (Visión)
-- [ ] Colaboración en tiempo real
+- [ ] Funciones avanzadas de colaboración (notificaciones por email, webhooks)
 - [ ] IA con voz (dictado de ideas)
 - [ ] Integración con Notion/Obsidian
 - [ ] Análisis de patrones creativos

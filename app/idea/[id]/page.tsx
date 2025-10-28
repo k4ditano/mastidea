@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import Loading from '@/components/Loading';
 import VoiceRecorder from '@/components/VoiceRecorder';
@@ -10,6 +11,7 @@ import ExportButtons from '@/components/ExportButtons';
 import TagEditor from '@/components/TagEditor';
 import SuccessScore from '@/components/SuccessScore';
 import IdeaActions from '@/components/IdeaActions';
+import CollaboratorList from '@/components/CollaboratorList';
 import { Idea, ExpansionType, EXPANSION_TYPE_LABELS } from '@/types';
 import { FaArrowLeft, FaTrash, FaCheckCircle, FaClipboardList } from 'react-icons/fa';
 import { formatDistanceToNow } from 'date-fns';
@@ -29,6 +31,7 @@ const getDateLocale = (locale: 'es' | 'en') => {
 export default function IdeaPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useUser();
   const t = useTranslations('idea');
   const locale = getCurrentLocale();
   const dateLocale = getDateLocale(locale);
@@ -40,6 +43,9 @@ export default function IdeaPage() {
   const [completing, setCompleting] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
   const [aiProcessing, setAiProcessing] = useState(false);
+
+  // Determinar si el usuario actual es el propietario
+  const isOwner = idea && user ? idea.userId === user.id : false;
 
   const handleTranscript = (text: string) => {
     setCustomMessage((prev) => prev + (prev ? ' ' : '') + text);
@@ -316,10 +322,17 @@ export default function IdeaPage() {
           <ExportButtons idea={idea} />
         </div>
 
-        {/* Idea Actions - Edit, Reopen, Fork */}
+        {/* Idea Actions - Edit, Reopen, Fork, Share */}
         <div className="mb-4">
-          <IdeaActions idea={idea} onUpdate={(updatedIdea) => setIdea(updatedIdea)} />
+          <IdeaActions idea={idea} onUpdate={(updatedIdea) => setIdea(updatedIdea)} isOwner={isOwner} />
         </div>
+
+        {/* Collaborators List */}
+        {(idea.collaborators && idea.collaborators.length > 0) || isOwner ? (
+          <div className="mb-4 bg-white rounded-lg border border-gray-200 p-4">
+            <CollaboratorList ideaId={idea.id} isOwner={isOwner} />
+          </div>
+        ) : null}
 
         {/* Chat-like Interface */}
         <div className="space-y-4 pb-64">

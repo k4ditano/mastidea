@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { qdrantService } from '@/lib/qdrant';
 import { auth } from '@clerk/nextjs/server';
+import { getIdeaWithAccess, isIdeaOwner } from '@/lib/ideaPermissions';
 
 /**
  * GET /api/ideas/[id] - Obtiene una idea por ID
@@ -17,25 +18,11 @@ export async function GET(
     }
 
     const { id } = await params;
-    const idea = await prisma.idea.findFirst({
-      where: { 
-        id, 
-        userId,
-        deletedAt: null, // Excluir ideas en papelera
-      },
-      include: {
-        expansions: {
-          orderBy: { createdAt: 'asc' },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-      },
-    });
+    
+    // Usar la función de permisos que incluye colaboradores
+    const idea = await getIdeaWithAccess(id, userId);
 
-    if (!idea) {
+    if (!idea || idea.deletedAt) {
       return NextResponse.json(
         { error: 'Idea no encontrada' },
         { status: 404 }
@@ -89,15 +76,11 @@ export async function DELETE(
 
     const { id } = await params;
     
-    // Verificar que la idea pertenece al usuario
-    const idea = await prisma.idea.findFirst({
-      where: { id, userId },
-    });
-
-    if (!idea) {
+    // Solo el propietario puede eliminar
+    if (!(await isIdeaOwner(id, userId))) {
       return NextResponse.json(
-        { error: 'Idea no encontrada' },
-        { status: 404 }
+        { error: 'Solo el propietario puede eliminar la idea' },
+        { status: 403 }
       );
     }
 
@@ -137,15 +120,11 @@ export async function PATCH(
     const body = await request.json();
     const { status } = body;
 
-    // Verificar que la idea pertenece al usuario
-    const existingIdea = await prisma.idea.findFirst({
-      where: { id, userId },
-    });
-
-    if (!existingIdea) {
+    // Solo el propietario puede cambiar el estado
+    if (!(await isIdeaOwner(id, userId))) {
       return NextResponse.json(
-        { error: 'Idea no encontrada' },
-        { status: 404 }
+        { error: 'Solo el propietario puede cambiar el estado de la idea' },
+        { status: 403 }
       );
     }
 

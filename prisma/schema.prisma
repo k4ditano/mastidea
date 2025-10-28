@@ -15,7 +15,7 @@ datasource db {
 
 model Idea {
   id                String              @id @default(cuid())
-  userId            String              // Clerk user ID
+  userId            String              // Clerk user ID (propietario)
   title             String
   content           String              @db.Text
   status            IdeaStatus          @default(ACTIVE)
@@ -26,8 +26,10 @@ model Idea {
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   
-  expansions  Expansion[]
-  tags        IdeaTag[]
+  expansions     Expansion[]
+  tags           IdeaTag[]
+  collaborators  IdeaCollaborator[]    // Colaboradores invitados
+  invitations    IdeaInvitation[]      // Invitaciones pendientes
   
   @@index([createdAt])
   @@index([status])
@@ -35,6 +37,42 @@ model Idea {
   @@index([successScore])
   @@index([deletedAt])
   @@index([aiProcessingStatus])
+}
+
+model IdeaCollaborator {
+  id          String       @id @default(cuid())
+  ideaId      String
+  userId      String       // Clerk user ID del colaborador
+  userEmail   String       // Email del colaborador para búsquedas
+  role        CollaboratorRole @default(COLLABORATOR)
+  addedAt     DateTime     @default(now())
+  
+  idea        Idea         @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  @@unique([ideaId, userId])
+  @@index([ideaId])
+  @@index([userId])
+  @@index([userEmail])
+}
+
+model IdeaInvitation {
+  id          String            @id @default(cuid())
+  ideaId      String
+  inviterUserId String          // Quien envía la invitación
+  invitedEmail  String          // Email del usuario invitado
+  invitedUserId String?         // Clerk ID cuando se encuentre el usuario
+  status      InvitationStatus  @default(PENDING)
+  message     String?           @db.Text  // Mensaje personalizado de invitación
+  createdAt   DateTime          @default(now())
+  respondedAt DateTime?         // Fecha de aceptación/rechazo
+  
+  idea        Idea              @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  @@unique([ideaId, invitedEmail])
+  @@index([ideaId])
+  @@index([invitedEmail])
+  @@index([invitedUserId])
+  @@index([createdAt])
 }
 
 model Tag {
@@ -96,4 +134,16 @@ enum AIProcessingStatus {
   PENDING       // IA aún procesando
   COMPLETED     // IA terminó de procesar
   FAILED        // Error en el procesamiento
+}
+
+enum CollaboratorRole {
+  OWNER         // Propietario de la idea
+  COLLABORATOR  // Colaborador con permisos de edición
+}
+
+enum InvitationStatus {
+  PENDING       // Invitación pendiente
+  ACCEPTED      // Invitación aceptada
+  REJECTED      // Invitación rechazada
+  EXPIRED       // Invitación expirada
 }

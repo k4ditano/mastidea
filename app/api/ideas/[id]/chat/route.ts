@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { openRouterClient } from '@/lib/openrouter';
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
+import { hasIdeaAccess } from '@/lib/ideaPermissions';
 
 const chatSchema = z.object({
   message: z.string().min(1, 'El mensaje es requerido'),
@@ -25,9 +26,17 @@ export async function POST(
     const body = await request.json();
     const { message } = chatSchema.parse(body);
 
-    // Obtener la idea con sus expansiones (verificando que pertenezca al usuario)
-    const idea = await prisma.idea.findFirst({
-      where: { id, userId },
+    // Verificar acceso (propietario o colaborador)
+    if (!(await hasIdeaAccess(id, userId))) {
+      return NextResponse.json(
+        { error: 'No tienes acceso a esta idea' },
+        { status: 403 }
+      );
+    }
+
+    // Obtener la idea con sus expansiones
+    const idea = await prisma.idea.findUnique({
+      where: { id },
       include: {
         expansions: {
           orderBy: { createdAt: 'asc' },

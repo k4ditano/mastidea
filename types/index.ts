@@ -1,5 +1,6 @@
 export interface Idea {
   id: string;
+  userId: string; // Clerk user ID del propietario
   title: string;
   content: string;
   status: 'ACTIVE' | 'ARCHIVED' | 'COMPLETED';
@@ -12,6 +13,32 @@ export interface Idea {
   expansions?: Expansion[];
   similarIdeas?: SimilarIdea[];
   tags?: IdeaTag[];
+  collaborators?: IdeaCollaborator[];
+  invitations?: IdeaInvitation[];
+}
+
+export interface IdeaCollaborator {
+  id: string;
+  ideaId: string;
+  userId: string;
+  userEmail: string;
+  role: 'OWNER' | 'COLLABORATOR';
+  addedAt: string;
+}
+
+export interface IdeaInvitation {
+  id: string;
+  ideaId: string;
+  inviterUserId: string;
+  invitedEmail: string;
+  invitedUserId?: string | null;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
+  message?: string | null;
+  createdAt: string;
+  respondedAt?: string | null;
+  idea?: Partial<Idea>; // Para mostrar info de la idea en notificaciones
+  inviterName?: string; // Nombre del invitador (del API)
+  inviterEmail?: string; // Email del invitador (del API)
 }
 
 export interface Tag {

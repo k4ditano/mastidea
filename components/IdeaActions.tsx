@@ -4,19 +4,23 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Idea } from '@/types';
-import { FaEdit, FaRedo, FaCodeBranch, FaTrash, FaArchive } from 'react-icons/fa';
+import { FaEdit, FaRedo, FaCodeBranch, FaTrash, FaArchive, FaUserPlus } from 'react-icons/fa';
+import CollaboratorInvite from './CollaboratorInvite';
 
 interface IdeaActionsProps {
   idea: Idea;
   onUpdate?: (updatedIdea: Idea) => void;
+  isOwner?: boolean;
 }
 
-export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
+export default function IdeaActions({ idea, onUpdate, isOwner = true }: IdeaActionsProps) {
   const router = useRouter();
   const t = useTranslations('actions');
+  const tCollab = useTranslations('collaboration');
   const [loading, setLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showForkMenu, setShowForkMenu] = useState(false);
+  const [showCollaboratorInvite, setShowCollaboratorInvite] = useState(false);
   const [editData, setEditData] = useState({
     title: idea.title,
     content: idea.content,
@@ -138,18 +142,33 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
       <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('title')}</h3>
       
       <div className="flex flex-wrap gap-2">
-        {/* Editar */}
-        <button
-          onClick={() => setShowEditModal(true)}
-          disabled={loading}
-          className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
-        >
-          <FaEdit className="text-blue-600 flex-shrink-0" />
-          <span>{t('edit')}</span>
-        </button>
+        {/* Compartir (solo propietario) */}
+        {isOwner && (
+          <button
+            onClick={() => setShowCollaboratorInvite(true)}
+            disabled={loading}
+            style={{ backgroundColor: '#7257ff' }}
+            className="flex items-center space-x-2 px-3 py-2 text-sm text-white hover:bg-einstein-700 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <FaUserPlus className="shrink-0" />
+            <span>{tCollab('inviteCollaborator')}</span>
+          </button>
+        )}
 
-        {/* Reabrir (solo si está completada) */}
-        {idea.status === 'COMPLETED' && (
+        {/* Editar */}
+        {isOwner && (
+          <button
+            onClick={() => setShowEditModal(true)}
+            disabled={loading}
+            className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <FaEdit className="text-blue-600 flex-shrink-0" />
+            <span>{t('edit')}</span>
+          </button>
+        )}
+
+        {/* Reabrir (solo si está completada y es propietario) */}
+        {isOwner && idea.status === 'COMPLETED' && (
           <button
             onClick={handleReopen}
             disabled={loading}
@@ -199,8 +218,8 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
           )}
         </div>
 
-        {/* Archivar (solo si está activa) */}
-        {idea.status === 'ACTIVE' && (
+        {/* Archivar (solo si está activa y es propietario) */}
+        {isOwner && idea.status === 'ACTIVE' && (
           <button
             onClick={handleArchive}
             disabled={loading}
@@ -211,16 +230,30 @@ export default function IdeaActions({ idea, onUpdate }: IdeaActionsProps) {
           </button>
         )}
 
-        {/* Eliminar */}
-        <button
-          onClick={handleDelete}
-          disabled={loading}
-          className="flex items-center space-x-2 px-3 py-2 text-sm text-red-600 bg-white border border-red-300 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-        >
-          <FaTrash className="flex-shrink-0" />
-          <span>{t('delete')}</span>
-        </button>
+        {/* Eliminar (solo propietario) */}
+        {isOwner && (
+          <button
+            onClick={handleDelete}
+            disabled={loading}
+            className="flex items-center space-x-2 px-3 py-2 text-sm text-red-600 bg-white border border-red-300 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <FaTrash className="flex-shrink-0" />
+            <span>{t('delete')}</span>
+          </button>
+        )}
       </div>
+
+      {/* Modal de Invitar Colaborador */}
+      {showCollaboratorInvite && (
+        <CollaboratorInvite
+          ideaId={idea.id}
+          onInviteSent={() => {
+            setShowCollaboratorInvite(false);
+            router.refresh();
+          }}
+          onClose={() => setShowCollaboratorInvite(false)}
+        />
+      )}
 
       {/* Modal de Edición */}
       {showEditModal && (
