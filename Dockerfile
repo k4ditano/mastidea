@@ -38,6 +38,8 @@ RUN adduser --system --uid 1001 nextjs
 
 # Copiar archivos necesarios
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/server.js ./server.js
+COPY --from=builder /app/lib ./lib
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma

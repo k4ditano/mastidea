@@ -58,9 +58,10 @@ export default function IdeaPage() {
   // Determinar si el usuario actual es el propietario
   const isOwner = idea && user ? idea.userId === user.id : false;
 
-  // Actualizaciones en tiempo real con SSE
-  const { connected: sseConnected } = useRealtimeUpdates({
+  // Actualizaciones en tiempo real con WebSocket
+  const { connected: wsConnected } = useRealtimeUpdates({
     ideaId: params.id as string,
+    userId: user?.id,
     onNewExpansions: async () => {
       // Cuando lleguen nuevas expansiones, recargar la idea
       await loadIdea();
@@ -299,7 +300,7 @@ export default function IdeaPage() {
       )}
 
       {/* SSE Connection Indicator */}
-      {sseConnected && (
+      {wsConnected && (
         <div className="fixed top-4 right-4 z-40 bg-green-500 text-white px-3 py-1 rounded-full text-xs flex items-center space-x-2 shadow-lg">
           <span className="animate-pulse">●</span>
           <span>{t("liveSyncActive")}</span>

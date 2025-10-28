@@ -4,6 +4,8 @@ import { openRouterClient } from "@/lib/openrouter";
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { hasIdeaAccess } from "@/lib/ideaPermissions";
+// @ts-expect-error - CommonJS module
+import { emitIdeaUpdate } from "@/lib/socket.js";
 
 const chatSchema = z.object({
   message: z.string().min(1, "El mensaje es requerido"),
@@ -119,6 +121,12 @@ Responde directo a lo que preguntan.`,
         userMessage: message, // Guardar el mensaje del usuario
         type: "SUGGESTION",
       },
+    });
+
+    // Emitir evento WebSocket
+    emitIdeaUpdate(idea.id, 'new_expansions', {
+      expansions: [expansion],
+      count: 1,
     });
 
     return NextResponse.json(expansion);

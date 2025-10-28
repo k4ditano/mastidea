@@ -5,6 +5,8 @@ import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { getLocale } from '@/lib/i18n-server';
 import { hasIdeaAccess } from '@/lib/ideaPermissions';
+// @ts-ignore - CommonJS module
+import { emitIdeaUpdate } from '@/lib/socket.js';
 
 const expandIdeaSchema = z.object({
   type: z.enum(['SUGGESTION', 'QUESTION', 'CONNECTION', 'USE_CASE', 'CHALLENGE']),
@@ -103,6 +105,12 @@ export async function POST(
         content: expansionContent,
         type,
       },
+    });
+
+    // Emitir evento WebSocket para notificar a otros usuarios
+    emitIdeaUpdate(idea.id, 'new_expansions', {
+      expansions: [expansion],
+      count: 1,
     });
 
     return NextResponse.json(expansion);
