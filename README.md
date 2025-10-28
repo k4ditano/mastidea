@@ -81,7 +81,7 @@ A minimalist application inspired by Einstein that helps you expand your ideas t
 
 - **Share ideas via email invitations** - Invite collaborators to develop ideas together
 - **Role-based permissions** - Owner vs Collaborator access control
-- **Real-time chat synchronization** - Server-Sent Events (SSE) for live updates
+- **Real-time chat synchronization** - Socket.IO WebSockets for instant live updates
 - **Invitation management** - Accept/reject invites with email notifications
 - **Collaborative expansions** - All collaborators can chat and expand ideas
 - **Owner controls** - Only owners can edit, archive, or delete ideas
@@ -444,7 +444,8 @@ Alternatives that include native Docker:
   - [x] Email-based invitation system with Clerk user lookup
   - [x] API endpoints: /api/invitations (GET, POST), /api/invitations/[id]/respond
   - [x] Permission helpers: hasIdeaAccess(), isIdeaOwner(), getIdeaWithAccess()
-  - [x] Server-Sent Events (SSE) for real-time chat updates
+  - [x] Socket.IO WebSockets for real-time updates with automatic reconnection
+  - [x] Custom server.js with integrated Socket.IO server
   - [x] UI components: InvitationNotifications, CollaboratorInvite, CollaboratorList
   - [x] Role-based access control (Owner vs Collaborator)
   - [x] Bilingual support for collaboration features (ES/EN)
@@ -543,7 +544,7 @@ Una aplicación minimalista inspirada en Einstein que te ayuda a expandir tus id
 
 - **Comparte ideas con invitaciones por email** - Invita colaboradores a desarrollar ideas juntos
 - **Permisos basados en roles** - Control de acceso Owner vs Collaborator
-- **Sincronización de chat en tiempo real** - Server-Sent Events (SSE) para actualizaciones en vivo
+- **Sincronización de chat en tiempo real** - WebSockets con Socket.IO para actualizaciones instantáneas
 - **Gestión de invitaciones** - Acepta/rechaza invites con notificaciones por email
 - **Expansiones colaborativas** - Todos los colaboradores pueden chatear y expandir ideas
 - **Controles del dueño** - Solo los dueños pueden editar, archivar o eliminar ideas
@@ -961,7 +962,8 @@ sudo pacman -U Mastidea*.pkg.tar.zst
   - [x] Sistema de invitaciones por email con búsqueda de usuarios Clerk
   - [x] Endpoints API: /api/invitations (GET, POST), /api/invitations/[id]/respond
   - [x] Helpers de permisos: hasIdeaAccess(), isIdeaOwner(), getIdeaWithAccess()
-  - [x] Server-Sent Events (SSE) para actualizaciones de chat en tiempo real
+  - [x] WebSockets con Socket.IO para actualizaciones en tiempo real con reconexión automática
+  - [x] Servidor custom server.js con Socket.IO integrado
   - [x] Componentes UI: InvitationNotifications, CollaboratorInvite, CollaboratorList
   - [x] Control de acceso basado en roles (Owner vs Collaborator)
   - [x] Soporte bilingüe para funciones de colaboración (ES/EN)
