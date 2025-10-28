@@ -63,6 +63,7 @@
     "aiSummarizing": "MastIdea está generando tu resumen ejecutivo...",
     "aiProcessingBackground": "🤖 IA procesando en segundo plano (título, tags, expansión)...",
     "autoUpdate": "La página se actualizará automáticamente",
+    "liveSyncActive": "Sincronización en vivo",
     "developIdea": "Sigue desarrollando tu idea con MastIdea",
     "welcomeMessage": "💭 MastIdea está lista para ayudarte.",
     "welcomeAction": "Elige una acción o escribe tu pregunta",

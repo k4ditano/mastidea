@@ -13,6 +13,7 @@ import SuccessScore from "@/components/SuccessScore";
 import IdeaActions from "@/components/IdeaActions";
 import CollaboratorList from "@/components/CollaboratorList";
 import PendingInvitations from "@/components/PendingInvitations";
+import { useRealtimeUpdates } from "@/lib/useRealtimeUpdates";
 import { Idea, ExpansionType, EXPANSION_TYPE_LABELS } from "@/types";
 import {
   FaArrowLeft,
@@ -56,6 +57,15 @@ export default function IdeaPage() {
 
   // Determinar si el usuario actual es el propietario
   const isOwner = idea && user ? idea.userId === user.id : false;
+
+  // Actualizaciones en tiempo real con SSE
+  const { connected: sseConnected } = useRealtimeUpdates({
+    ideaId: params.id as string,
+    onNewExpansions: async () => {
+      // Cuando lleguen nuevas expansiones, recargar la idea
+      await loadIdea();
+    },
+  });
 
   const handleTranscript = (text: string) => {
     setCustomMessage((prev) => prev + (prev ? " " : "") + text);
@@ -285,6 +295,14 @@ export default function IdeaPage() {
               <p className="text-xs text-gray-600 mt-1">{t("autoUpdate")}</p>
             )}
           </div>
+        </div>
+      )}
+
+      {/* SSE Connection Indicator */}
+      {sseConnected && (
+        <div className="fixed top-4 right-4 z-40 bg-green-500 text-white px-3 py-1 rounded-full text-xs flex items-center space-x-2 shadow-lg">
+          <span className="animate-pulse">●</span>
+          <span>{t("liveSyncActive")}</span>
         </div>
       )}
 
