@@ -18,11 +18,20 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generar Prisma Client
+# Generar Prisma Client (set dummy DATABASE_URL for build)
+ENV DATABASE_URL="postgresql://user:password@localhost:5432/db"
+# Next.js build environment variables
+ENV NEXT_PUBLIC_APP_NAME="MastIdea"
+ENV NODE_ENV="production"
+ENV NEXT_TELEMETRY_DISABLED=1
+# Dummy values for build-time environment variables
+ENV OPENROUTER_API_KEY="dummy"
+ENV OPENAI_API_KEY="dummy"
+ENV QDRANT_URL="http://dummy:6333"
+ENV QDRANT_COLLECTION="dummy"
 RUN npx prisma generate
 
 # Build Next.js
-ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Production stage

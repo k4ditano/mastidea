@@ -5,7 +5,6 @@ import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { getLocale } from '@/lib/i18n-server';
 import { hasIdeaAccess } from '@/lib/ideaPermissions';
-// @ts-ignore - CommonJS module
 import { emitIdeaUpdate } from '@/lib/socket.js';
 
 const expandIdeaSchema = z.object({
