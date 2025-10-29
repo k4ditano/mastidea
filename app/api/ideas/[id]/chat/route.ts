@@ -4,7 +4,7 @@ import { openRouterClient } from "@/lib/openrouter";
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { hasIdeaAccess } from "@/lib/ideaPermissions";
-import { emitIdeaUpdate } from "@/lib/socket.js";
+import { emitIdeaUpdate } from "@/lib/socket";
 
 const chatSchema = z.object({
   message: z.string().min(1, "El mensaje es requerido"),
