@@ -1,0 +1,17 @@
+name: Block Direct Push to Main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  block-non-admin-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if not admin
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ] && [ "${{ github.actor }}" != "k4ditano" ]; then
+            echo "Solo el admin puede hacer push directo a main. Usa Pull Request."
+            exit 1
+          fi
