@@ -1,5 +1,5 @@
 ---
-name:Masti
+name: Masti
 description: Agente corrector.
 ---
 
