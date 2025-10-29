@@ -60,6 +60,7 @@ export interface Expansion {
   ideaId: string;
   content: string;
   userMessage?: string | null;
+  userId?: string | null; // ID del usuario que creó el mensaje (si existe userMessage)
   type: ExpansionType;
   aiModel: string;
   createdAt: string;

@@ -18,17 +18,20 @@ export function useRealtimeUpdates({
   onCollaboratorsUpdated,
 }: UseRealtimeUpdatesProps) {
   const [connected, setConnected] = useState(false);
-  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    if (!ideaId || !userId) return;
+    if (!ideaId || !userId) {
+      console.log(`[Socket.IO Client] No se puede conectar - ideaId: ${ideaId}, userId: ${userId}`);
+      return;
+    }
 
     // Obtener URL del servidor
     const serverUrl = typeof window !== 'undefined' 
       ? window.location.origin 
       : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-    console.log(`[Socket.IO] Conectando a ${serverUrl}`);
+    console.log(`[Socket.IO Client] Conectando a ${serverUrl}`);
+    console.log(`[Socket.IO Client] IdeaId: ${ideaId}, UserId: ${userId}`);
 
     // Conectar a Socket.IO con configuración mejorada
     const socketIO = io(serverUrl, {
@@ -42,6 +45,8 @@ export function useRealtimeUpdates({
       autoConnect: true,
       withCredentials: true,
     });
+    
+    console.log(`[Socket.IO Client] Socket creado, esperando conexión...`);
 
     socketIO.on("connect", () => {
       console.log("[Socket.IO] Conectado exitosamente");
@@ -107,8 +112,6 @@ export function useRealtimeUpdates({
       onNewExpansions?.([]); // Trigger reload sin datos específicos
     });
 
-    setSocket(socketIO);
-
     return () => {
       if (socketIO) {
         console.log("[Socket.IO] Limpiando conexión");
@@ -119,5 +122,5 @@ export function useRealtimeUpdates({
     };
   }, [ideaId, userId, onNewExpansions, onCollaboratorsUpdated]);
 
-  return { connected, socket };
+  return { connected };
 }

@@ -40,6 +40,8 @@
   },
   "idea": {
     "yourIdea": "Your idea",
+    "you": "You",
+    "collaborator": "Collaborator",
     "completed": "Idea completed",
     "completedDesc": "This idea already has its executive summary. Check the summary at the end.",
     "close": "Close",

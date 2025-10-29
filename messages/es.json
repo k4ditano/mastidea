@@ -40,6 +40,8 @@
   },
   "idea": {
     "yourIdea": "Tu idea",
+    "you": "Tú",
+    "collaborator": "Colaborador",
     "completed": "Idea completada",
     "completedDesc": "Esta idea ya tiene su resumen ejecutivo. Revisa el resumen al final.",
     "close": "Cerrar",

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { emitIdeaUpdate } from '@/lib/socket';
 
 /**
  * POST /api/ideas/[id]/tags
@@ -85,6 +86,11 @@ export async function POST(
           }
         }
       }
+    });
+
+    // Emitir evento WebSocket
+    emitIdeaUpdate(id, 'idea_updated', {
+      tags: updatedIdea?.tags,
     });
 
     return NextResponse.json({ idea: updatedIdea });

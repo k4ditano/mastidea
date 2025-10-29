@@ -76,6 +76,13 @@ export default function IdeaPage() {
     },
   });
 
+  // Log para debug
+  useEffect(() => {
+    console.log("[IdeaPage] User ID:", user?.id);
+    console.log("[IdeaPage] Idea ID:", params.id);
+    console.log("[IdeaPage] Socket Connected:", wsConnected);
+  }, [user?.id, params.id, wsConnected]);
+
   const handleTranscript = (text: string) => {
     setCustomMessage((prev) => prev + (prev ? " " : "") + text);
   };
@@ -229,14 +236,15 @@ export default function IdeaPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Error completing idea");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error completing idea");
       }
 
       await loadIdea();
       alert(t("completeSuccess"));
     } catch (error) {
       console.error("Error:", error);
-      alert(t("errorCompleting"));
+      alert((error as Error).message || t("errorCompleting"));
     } finally {
       setCompleting(false);
     }
@@ -287,8 +295,6 @@ export default function IdeaPage() {
     return null;
   }
 
-  console.log("Idea status:", idea.status, "Type:", typeof idea.status);
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white relative">
       {/* Global AI Loading Indicator */}
@@ -320,7 +326,7 @@ export default function IdeaPage() {
 
       {/* SSE Connection Indicator */}
       {wsConnected && (
-        <div className="fixed top-4 right-4 z-40 bg-green-500 text-white px-3 py-1 rounded-full text-xs flex items-center space-x-2 shadow-lg">
+        <div className="fixed top-20 right-4 z-50 bg-green-500 text-white px-3 py-1 rounded-full text-xs flex items-center space-x-2 shadow-lg">
           <span className="animate-pulse">●</span>
           <span>{t("liveSyncActive")}</span>
         </div>
@@ -487,7 +493,14 @@ export default function IdeaPage() {
 
           {/* AI Expansions - Chat bubbles */}
           {idea.expansions &&
-            idea.expansions.map((expansion) => (
+            idea.expansions.map((expansion) => {
+              // Determinar el nombre a mostrar
+              const isCurrentUser = expansion.userId === user?.id;
+              const senderName = isCurrentUser ? t("you") : expansion.userId 
+                ? (idea.collaborators?.find(c => c.userId === expansion.userId)?.userEmail?.split('@')[0] || t("collaborator"))
+                : t("you");
+              
+              return (
               <div key={expansion.id} className="space-y-3">
                 {/* User message if exists */}
                 {expansion.userMessage && (
@@ -495,7 +508,7 @@ export default function IdeaPage() {
                     <div className="max-w-[85%] bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-2xl rounded-tr-sm px-5 py-3 shadow-md">
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="text-sm">👤</span>
-                        <span className="text-xs opacity-80">Tú</span>
+                        <span className="text-xs opacity-80">{senderName}</span>
                       </div>
                       <p className="text-sm leading-relaxed">
                         {expansion.userMessage}
@@ -541,7 +554,8 @@ export default function IdeaPage() {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
 
           {/* Invisible element for auto-scroll */}
           <div ref={chatEndRef} />

@@ -5,6 +5,7 @@ import { qdrantService } from '@/lib/qdrant';
 import { openRouterClient } from '@/lib/openrouter';
 import { z } from 'zod';
 import { getLocale } from '@/lib/i18n-server';
+import { emitIdeaUpdate } from '@/lib/socket';
 
 const editIdeaSchema = z.object({
   title: z.string().min(1, 'El título es requerido'),
@@ -110,6 +111,13 @@ export async function PATCH(
     } catch (error) {
       console.error('Error actualizando en Qdrant:', error);
     }
+
+    // Emitir evento WebSocket
+    emitIdeaUpdate(id, 'idea_updated', {
+      title: updatedIdea.title,
+      content: updatedIdea.content,
+      successScore: updatedIdea.successScore,
+    });
 
     return NextResponse.json({
       success: true,

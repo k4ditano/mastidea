@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { emitIdeaUpdate } from '@/lib/socket';
 
 /**
  * POST /api/ideas/[id]/reopen - Reabre una idea completada para seguir trabajando
@@ -57,6 +58,11 @@ export async function POST(
           },
         },
       },
+    });
+
+    // Emitir evento WebSocket
+    emitIdeaUpdate(id, 'idea_updated', {
+      status: 'ACTIVE',
     });
 
     return NextResponse.json({

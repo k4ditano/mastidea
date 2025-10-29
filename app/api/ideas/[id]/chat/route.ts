@@ -118,6 +118,7 @@ Responde directo a lo que preguntan.`,
         ideaId: idea.id,
         content: response,
         userMessage: message, // Guardar el mensaje del usuario
+        userId: userId, // Guardar el ID del usuario que envió el mensaje
         type: "SUGGESTION",
       },
     });

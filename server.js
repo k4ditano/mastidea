@@ -10,7 +10,11 @@ const port = parseInt(process.env.PORT || "3000", 10);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
+console.log("[Server] Iniciando servidor...");
+
 app.prepare().then(() => {
+  console.log("[Server] Next.js preparado");
+  
   const httpServer = createServer(async (req, res) => {
     try {
       const parsedUrl = parse(req.url, true);
@@ -23,7 +27,9 @@ app.prepare().then(() => {
   });
 
   // Inicializar Socket.IO
+  console.log("[Server] Inicializando Socket.IO...");
   initSocket(httpServer);
+  console.log("[Server] Socket.IO inicializado");
 
   httpServer
     .once("error", (err) => {

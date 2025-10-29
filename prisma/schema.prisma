@@ -104,6 +104,7 @@ model Expansion {
   ideaId      String
   content     String        @db.Text
   userMessage String?       @db.Text // Mensaje del usuario (si es una conversación)
+  userId      String?       // ID del usuario que creó el mensaje (si userMessage existe)
   type        ExpansionType
   aiModel     String        @default("meta-llama/llama-3.1-8b-instruct")
   createdAt   DateTime      @default(now())

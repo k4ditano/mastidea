@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { openRouterClient } from '@/lib/openrouter';
 import { auth } from '@clerk/nextjs/server';
 import { getLocale } from '@/lib/i18n-server';
+import { emitIdeaUpdate } from '@/lib/socket';
 
 // Colores predefinidos para tags
 const TAG_COLORS = [
@@ -37,9 +38,9 @@ export async function POST(
 
     const { id } = await params;
 
-    // Obtener la idea con todas sus expansiones y tags actuales (verificando que pertenezca al usuario)
+    // Obtener la idea con todas sus expansiones y tags actuales
     const idea = await prisma.idea.findFirst({
-      where: { id, userId },
+      where: { id },
       include: {
         expansions: {
           orderBy: { createdAt: 'asc' },
@@ -49,6 +50,7 @@ export async function POST(
             tag: true,
           },
         },
+        collaborators: true,
       },
     });
 
@@ -59,6 +61,14 @@ export async function POST(
       );
     }
 
+    // Solo el propietario puede cerrar la idea
+    if (idea.userId !== userId) {
+      return NextResponse.json(
+        { error: 'Solo el propietario puede cerrar la idea' },
+        { status: 403 }
+      );
+    }
+
     if (idea.status === 'COMPLETED') {
       return NextResponse.json(
         { error: 'Esta idea ya está completada' },
@@ -66,13 +76,12 @@ export async function POST(
       );
     }
 
-    // Verificar si ya existe un resumen (por si hubo llamada duplicada)
-    const existingSummary = idea.expansions.find((exp: { type: string }) => exp.type === 'SUMMARY');
+    // Verificar si ya existe un resumen y eliminarlo para regenerarlo
+    const existingSummary = idea.expansions.find((exp: { type: string; id: string }) => exp.type === 'SUMMARY');
     if (existingSummary) {
-      return NextResponse.json(
-        { error: 'Esta idea ya tiene un resumen ejecutivo' },
-        { status: 400 }
-      );
+      await prisma.expansion.delete({
+        where: { id: existingSummary.id },
+      });
     }
 
     // Preparar contexto de todas las expansiones
@@ -204,6 +213,12 @@ Crea el resumen ejecutivo ahora.`
           },
         },
       },
+    });
+
+    // Emitir evento WebSocket para notificar a todos los usuarios conectados
+    emitIdeaUpdate(idea.id, 'idea_updated', {
+      status: 'COMPLETED',
+      successScore: successAnalysisResult.score,
     });
 
     return NextResponse.json(completedIdea);

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { emitIdeaUpdate } from '@/lib/socket';
 
 /**
  * DELETE /api/ideas/[id]/tags/[tagId]
@@ -67,6 +68,11 @@ export async function DELETE(
           }
         }
       }
+    });
+
+    // Emitir evento WebSocket
+    emitIdeaUpdate(id, 'idea_updated', {
+      tags: updatedIdea?.tags,
     });
 
     return NextResponse.json({ idea: updatedIdea });

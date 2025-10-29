@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { openRouterClient } from '@/lib/openrouter';
 import { auth } from '@clerk/nextjs/server';
+import { emitIdeaUpdate } from '@/lib/socket';
 
 /**
  * POST /api/ideas/[id]/summarize - Genera resumen ejecutivo SIN cerrar la idea
@@ -103,12 +104,18 @@ Crea el resumen ejecutivo ahora.`
 
     // Guardar el resumen como una expansión especial tipo SUMMARY
     // La idea se mantiene en estado ACTIVE para que el usuario pueda seguir desarrollándola
-    await prisma.expansion.create({
+    const newSummary = await prisma.expansion.create({
       data: {
         ideaId: idea.id,
         content: summary,
         type: 'SUMMARY',
       },
+    });
+
+    // Emitir evento WebSocket
+    emitIdeaUpdate(idea.id, 'new_expansions', {
+      expansions: [newSummary],
+      count: 1,
     });
 
     // Recargar la idea con el nuevo resumen
