@@ -2,21 +2,33 @@ import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { prisma } from "./prisma";
 
-let io: SocketIOServer | null = null;
+// Declarar tipos globales para TypeScript
+declare global {
+  var io: SocketIOServer | undefined;
+}
 
 export const initSocket = (httpServer: HTTPServer) => {
-  if (io) return io;
+  if (global.io) return global.io;
 
-  io = new SocketIOServer(httpServer, {
+  // Configurar orígenes permitidos para CORS
+  const allowedOrigins = process.env.NEXT_PUBLIC_APP_URL 
+    ? [process.env.NEXT_PUBLIC_APP_URL, process.env.NEXT_PUBLIC_APP_URL.replace(/:\d+$/, ':3000')]
+    : "*";
+
+  global.io = new SocketIOServer(httpServer, {
     cors: {
-      origin: process.env.NEXT_PUBLIC_APP_URL || "*",
+      origin: allowedOrigins,
       methods: ["GET", "POST"],
+      credentials: true,
     },
     path: "/socket.io/",
     transports: ["websocket", "polling"],
+    connectTimeout: 45000,
+    pingTimeout: 30000,
+    pingInterval: 25000,
   });
 
-  io.on("connection", (socket) => {
+  global.io.on("connection", (socket) => {
     console.log(`[Socket.IO] Cliente conectado: ${socket.id}`);
 
     // Unirse a una sala específica de una idea
@@ -56,14 +68,15 @@ export const initSocket = (httpServer: HTTPServer) => {
     });
   });
 
-  return io;
+  console.log("[Socket.IO] Servidor Socket.IO inicializado correctamente");
+  return global.io;
 };
 
 export const getIO = (): SocketIOServer | null => {
-  if (!io) {
+  if (!global.io) {
     console.warn("[Socket.IO] Socket.IO no está inicializado");
   }
-  return io;
+  return global.io || null;
 };
 
 // Función auxiliar para emitir actualizaciones de idea

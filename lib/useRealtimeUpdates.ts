@@ -23,18 +23,28 @@ export function useRealtimeUpdates({
   useEffect(() => {
     if (!ideaId || !userId) return;
 
-    // Conectar a Socket.IO
-    const socketIO = io({
+    // Obtener URL del servidor
+    const serverUrl = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+    console.log(`[Socket.IO] Conectando a ${serverUrl}`);
+
+    // Conectar a Socket.IO con configuración mejorada
+    const socketIO = io(serverUrl, {
       path: "/socket.io/",
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: 5,
+      timeout: 20000,
+      autoConnect: true,
+      withCredentials: true,
     });
 
     socketIO.on("connect", () => {
-      console.log("[Socket.IO] Conectado");
+      console.log("[Socket.IO] Conectado exitosamente");
       setConnected(true);
       
       // Unirse a la sala de la idea
@@ -49,8 +59,33 @@ export function useRealtimeUpdates({
       }
     });
 
-    socketIO.on("disconnect", () => {
-      console.log("[Socket.IO] Desconectado");
+    socketIO.on("disconnect", (reason) => {
+      console.log(`[Socket.IO] Desconectado: ${reason}`);
+      setConnected(false);
+    });
+
+    socketIO.on("connect_error", (error) => {
+      console.error("[Socket.IO] Error de conexión:", error.message);
+      setConnected(false);
+    });
+
+    socketIO.on("reconnect", (attemptNumber) => {
+      console.log(`[Socket.IO] Reconectado después de ${attemptNumber} intentos`);
+      setConnected(true);
+      // Re-unirse a la sala después de reconectar
+      socketIO.emit("join-idea", ideaId, userId);
+    });
+
+    socketIO.on("reconnect_attempt", (attemptNumber) => {
+      console.log(`[Socket.IO] Intento de reconexión #${attemptNumber}`);
+    });
+
+    socketIO.on("reconnect_error", (error) => {
+      console.error("[Socket.IO] Error de reconexión:", error.message);
+    });
+
+    socketIO.on("reconnect_failed", () => {
+      console.error("[Socket.IO] Falló la reconexión después de todos los intentos");
       setConnected(false);
     });
 
@@ -76,7 +111,9 @@ export function useRealtimeUpdates({
 
     return () => {
       if (socketIO) {
+        console.log("[Socket.IO] Limpiando conexión");
         socketIO.emit("leave-idea", ideaId);
+        socketIO.removeAllListeners();
         socketIO.disconnect();
       }
     };

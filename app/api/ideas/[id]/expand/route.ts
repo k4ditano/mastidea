@@ -5,7 +5,7 @@ import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { getLocale } from '@/lib/i18n-server';
 import { hasIdeaAccess } from '@/lib/ideaPermissions';
-import { emitIdeaUpdate } from '@/lib/socket.js';
+import { emitIdeaUpdate } from '@/lib/socket';
 
 const expandIdeaSchema = z.object({
   type: z.enum(['SUGGESTION', 'QUESTION', 'CONNECTION', 'USE_CASE', 'CHALLENGE']),
